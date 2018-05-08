@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.image.*?>
+<?import javafx.geometry.*?>
+<?import java.lang.*?>
+<?import java.util.*?>
+<?import javafx.scene.*?>
+<?import javafx.scene.control.*?>
+<?import javafx.scene.layout.*?>
+
+<AnchorPane id="AnchorPane" style="-fx-background-color: #67727a;" xmlns="http://javafx.com/javafx/8" xmlns:fx="http://javafx.com/fxml/1" fx:controller="RemoteControlPage.RemoteControlPaneFXMLController">
+   <children>
+      <AnchorPane fx:id="command_pane" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
+         <padding>
+            <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+         </padding>
+         <children>
+            <ImageView fx:id="command_panel" fitHeight="400.0" fitWidth="600.0" onKeyPressed="#keyPressed" onKeyReleased="#keyReleased" onKeyTyped="#keyReleased" onMouseClicked="#mousePressed" onMouseDragged="#mouseDragged" onMouseEntered="#mouseEntered" onMouseExited="#mouseExited" onMouseMoved="#mouseMoved" onMousePressed="#mousePressed" onMouseReleased="#mouseReleased" onScroll="#mouseWheelMoved" pickOnBounds="true" preserveRatio="true" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0" />
+         </children>
+      </AnchorPane>
+   </children>
+</AnchorPane>
