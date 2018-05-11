@@ -79,9 +79,12 @@ import org.json.JSONObject;
 import java.util.Timer;
 import java.util.TimerTask;
 import javafx.embed.swing.SwingFXUtils;
+import javafx.scene.effect.DropShadow;
 import javafx.scene.input.KeyCode;
 import javafx.scene.input.KeyEvent;
 import javafx.scene.input.MouseButton;
+import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.util.StringConverter;
 import javax.imageio.ImageIO;
 import javax.net.ssl.SSLSocketFactory;
@@ -143,6 +146,9 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
     private Circle status_circle;
     
     @FXML
+    private Circle profile_picture_circle;
+    
+    @FXML
     private Label status_label;
     
     @FXML
@@ -153,9 +159,6 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
   
     @FXML
     private JFXComboBox<String> id_combobox;
-    
-    @FXML
-    private ImageView profile_photo_img;
 
     public void setUsername(String username) {
         this.username = username;
@@ -713,7 +716,7 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
             Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
         }
         Image img = SwingFXUtils.toFXImage(bufferedImage, null);
-        this.profile_photo_img.setImage(img);
+        this.profile_picture_circle.setFill(new ImagePattern(img));
     }
     
     public void connectToServer()

@@ -290,11 +290,16 @@ public class Context {
     public void UpdateProfilePicture(){
         // function updates the profile picture on all the pages
         System.out.println("Updating profile picture");
-        f.SetProfilePicture(this.isSignedIn());
-        g.SetProfilePicture(this.isSignedIn());
-        s_i.SetProfilePicture(this.isSignedIn());
-        s_u.SetProfilePicture(this.isSignedIn());
-        OnlineChatController.SetProfilePicture(this.isSignedIn());
+        if(f != null)
+            f.SetProfilePicture(this.isSignedIn());
+        if(g != null)
+            g.SetProfilePicture(this.isSignedIn());
+        if(s_i != null)
+            s_i.SetProfilePicture(this.isSignedIn());
+        if(s_u != null)
+            s_u.SetProfilePicture(this.isSignedIn());
+        if(OnlineChatController != null)
+            OnlineChatController.SetProfilePicture(this.isSignedIn());
     }
     
     public void SetStatusBar(String status, String style){

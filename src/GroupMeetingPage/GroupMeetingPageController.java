@@ -49,6 +49,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.util.Duration;
 import javax.imageio.ImageIO;
@@ -119,7 +120,7 @@ public class GroupMeetingPageController implements Initializable, ControlledScre
     private JFXButton start_meeting_btn;
     
     @FXML
-    private ImageView profile_photo_img;
+    private Circle profile_picture_circle;
 
     /**
      * Initializes the controller class.
@@ -181,7 +182,7 @@ public class GroupMeetingPageController implements Initializable, ControlledScre
             Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
         }
         Image img = SwingFXUtils.toFXImage(bufferedImage, null);
-        this.profile_photo_img.setImage(img);
+        this.profile_picture_circle.setFill(new ImagePattern(img));
     }
     
     @Override

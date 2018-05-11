@@ -7,6 +7,7 @@ and open the template in the editor.
     Created on : Feb 19, 2018, 3:47:37 PM
     Author     : admin
 */
+
 .jfx-hamburger StackPane {
     -fx-background-color: #e8e6e6;
 }
@@ -28,6 +29,10 @@ and open the template in the editor.
 }
 .background-style-B{
     -fx-background-color: #67727a;
+}
+
+.stroke-style-A{
+    -fx-stroke: #d75c37;
 }
 
 .mygridStyle Line {

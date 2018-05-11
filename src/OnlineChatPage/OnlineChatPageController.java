@@ -33,6 +33,7 @@ import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.AnchorPane;
 import javafx.scene.layout.BorderPane;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javax.imageio.ImageIO;
 import org.json.JSONException;
@@ -57,7 +58,7 @@ public class OnlineChatPageController implements Initializable, ControlledScreen
     private BorderPane chat_room_pane;
     
     @FXML
-    private ImageView profile_photo_img;
+    private Circle profile_picture_circle;
     
     @FXML
     private Label status_label;
@@ -105,7 +106,7 @@ public class OnlineChatPageController implements Initializable, ControlledScreen
             Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
         }
         Image img = SwingFXUtils.toFXImage(bufferedImage, null);
-        this.profile_photo_img.setImage(img);
+        this.profile_picture_circle.setFill(new ImagePattern(img));
     }
     
     public void SendMessage(JSONObject jsonObject){

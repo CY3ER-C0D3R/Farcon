@@ -19,14 +19,11 @@
          <children>
             <HBox layoutY="38.0" prefHeight="62.0" prefWidth="200.0" AnchorPane.bottomAnchor="0.0" AnchorPane.leftAnchor="0.0" AnchorPane.rightAnchor="0.0" AnchorPane.topAnchor="0.0">
                <children>
-                  <ImageView fx:id="profile_photo_img" fitHeight="50.0" fitWidth="50.0" pickOnBounds="true" preserveRatio="true">
-                      <image>
-                              <Image url="Resources/004-user.png" />
-                      </image>
+                  <Circle fx:id="profile_picture_circle" fill="WHITESMOKE" radius="28.0" stroke="BLACK" strokeType="INSIDE" styleClass="stroke-style-A">
                      <HBox.margin>
                         <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                      </HBox.margin>
-                  </ImageView>
+                  </Circle>
                </children>
             </HBox>
          </children></AnchorPane>

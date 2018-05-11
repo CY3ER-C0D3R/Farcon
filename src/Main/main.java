@@ -112,6 +112,8 @@ public class main extends Application{
         
         // don't make the stage always on top
         stage.setAlwaysOnTop(false);
+        // set default profile photo
+        Context.getInstance().UpdateProfilePicture();
     }
 
     /**

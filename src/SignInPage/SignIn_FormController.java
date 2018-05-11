@@ -33,6 +33,7 @@ import javafx.fxml.Initializable;
 import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javax.imageio.ImageIO;
 import org.json.JSONException;
@@ -67,7 +68,7 @@ public class SignIn_FormController implements Initializable, ControlledScreen {
     private Circle status_circle;
 
     @FXML
-    private ImageView profile_photo_img;
+    private Circle profile_picture_circle;
     
     
     /**
@@ -183,7 +184,7 @@ public class SignIn_FormController implements Initializable, ControlledScreen {
             Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
         }
         Image img = SwingFXUtils.toFXImage(bufferedImage, null);
-        this.profile_photo_img.setImage(img);
+        this.profile_picture_circle.setFill(new ImagePattern(img));
     }
     
     @FXML

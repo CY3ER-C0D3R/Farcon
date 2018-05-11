@@ -13,6 +13,10 @@ import Common.Context;
 import Common.Utils;
 import com.jfoenix.controls.JFXPasswordField;
 import com.jfoenix.controls.JFXTextField;
+import java.awt.AlphaComposite;
+import java.awt.Graphics;
+import java.awt.Graphics2D;
+import java.awt.geom.Arc2D;
 import java.awt.image.BufferedImage;
 import java.io.BufferedReader;
 import java.io.File;
@@ -39,6 +43,7 @@ import javafx.scene.control.Label;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.input.MouseEvent;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.shape.Circle;
 import javafx.stage.FileChooser;
 import javafx.stage.FileChooser.ExtensionFilter;
@@ -77,7 +82,7 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
     private JFXPasswordField confirm_password_field;
     
     @FXML
-    private Label profile_photo_label;
+    private Circle profile_picture_circle;
     
     @FXML
     private ImageView profile_photo_img_selection;
@@ -121,7 +126,7 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
             Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
         }
         Image img = SwingFXUtils.toFXImage(bufferedImage, null);
-        this.profile_photo_img.setImage(img);
+        this.profile_picture_circle.setFill(new ImagePattern(img));
     }
     
     public void SendMessage(JSONObject jsonObject){
@@ -231,6 +236,22 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
                 BufferedImage bufferedImage = ImageIO.read(selectedFile);
                 Image img = SwingFXUtils.toFXImage(bufferedImage, null);
                 this.profile_photo_img_selection.setImage(img);
+                
+                // make the image circular
+//                int x = 100;
+//                int y = 100;
+//                int radius = 50;
+//                int margin = 10;
+//                BufferedImage bi = new BufferedImage(2*radius+(2*margin),2*radius+(2*margin),BufferedImage.TYPE_INT_ARGB);
+//                Graphics2D g = bi.createGraphics();
+//                g.translate(bi.getWidth()/2, bi.getHeight()/2);
+//                Arc2D myArea = new Arc2D.Float(0-radius, 0-radius, 2*radius, 2*radius, 0, -360, Arc2D.OPEN);
+//                AlphaComposite composite = AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f);
+//                g.setComposite(composite);
+//                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
+//                g.setClip(myArea);
+//                g.drawImage(bufferedImage.getSubimage(x-radius, y-radius, x+radius, y+radius), -radius, -radius, this.profile_photo_img_selection);
+                
             } catch (IOException ex) {
                 Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
             }
