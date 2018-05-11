@@ -98,11 +98,11 @@ public class OnlineChatPageController implements Initializable, ControlledScreen
         BufferedImage bufferedImage = null;
         try {
             if(signedIn)
-                bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/007-profile-photo.png"));
+                bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/007-profile-photo." + Context.getInstance().getPhoto_extention()));
             else //use default picture
                 bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/004-user.png"));
         } catch (IOException ex) {
-            Logger.getLogger(OnlineChatPageController.class.getName()).log(Level.SEVERE, null, ex);
+            Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
         }
         Image img = SwingFXUtils.toFXImage(bufferedImage, null);
         this.profile_photo_img.setImage(img);

@@ -62,6 +62,8 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
     private OutputStreamWriter output;
     private BufferedReader input;
     
+    String ext = ""; // saves the file extention for later
+    
     @FXML
     private JFXTextField email_field;
     
@@ -112,7 +114,7 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
         BufferedImage bufferedImage = null;
         try {
             if(signedIn)
-                bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/007-profile-photo.png"));
+                bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/007-profile-photo." + Context.getInstance().getPhoto_extention()));
             else //use default picture
                 bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/004-user.png"));
         } catch (IOException ex) {
@@ -134,7 +136,7 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
     private void SignUpToServer(String email, String username, String password) {
 
         //profile photo is set by the current picture of user in resources
-        File file = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"/build/classes/Resources/007-profile-photo.png");
+        File file = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"/build/classes/Resources/007-profile-photo." + ext);
         FileInputStream fis = null;
         String imageDataString = "";
         byte imageData[] = null;
@@ -159,6 +161,7 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
             parameters.put("username", username);
             parameters.put("password", password);
             parameters.put("profile-picture", imageDataString);
+            parameters.put("picture-extention", ext);
             jsonObject.put("Parameters", parameters);
             
             //send data to server
@@ -207,7 +210,7 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
     private void choose_profile_photo(MouseEvent event){
         // open file dialog to choose the profile photo
         FileChooser fc = new FileChooser();
-        fc.setInitialDirectory(new File("C:\\Users\\admin\\Desktop\\project icons\\png"));
+        //fc.setInitialDirectory(new File("C:\\Users\\admin\\Desktop\\project icons\\png"));
         fc.getExtensionFilters().addAll(
             new ExtensionFilter("PNG Files", "*.png"),
             new ExtensionFilter("JPG Files", "*.jpg"),
@@ -219,7 +222,8 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
         File selectedFile = fc.showOpenDialog(null);
         if(selectedFile != null){
             File source = new File(selectedFile.getAbsolutePath());
-            String ext = Utils.getExtension(source);
+            this.ext = Utils.getExtension(source);
+            Context.getInstance().setPhoto_extention(ext);
             System.out.println(Paths.get(".").toAbsolutePath().normalize().toString()+"\\build\\classes\\Resources\\007-profile-photo." + ext);
             File dest = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\build\\classes\\Resources\\007-profile-photo." + ext);
             try {
@@ -270,8 +274,6 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
                         });
                 notificationbuilder.darkStyle();
                 notificationbuilder.show();
-                
-                //Notifications.create().title("Test").text("working? or not working?").position(Pos.BOTTOM_RIGHT).show();
             }
         });
     }

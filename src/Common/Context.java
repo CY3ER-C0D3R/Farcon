@@ -65,6 +65,7 @@ public class Context {
     private String lastStatus;  // saves the status of the status bar
     private Timer timer;
     
+    private String photo_extention = "jpg";  // default is a jpg profile photo
         
     public static Context getInstance() {
         return instance;
@@ -236,6 +237,14 @@ public class Context {
 
     public void setSignedIn(boolean signedIn) {
         this.signedIn = signedIn;
+    }
+
+    public String getPhoto_extention() {
+        return photo_extention;
+    }
+
+    public void setPhoto_extention(String photo_extention) {
+        this.photo_extention = photo_extention;
     }
     
     // ------------------------------------------------------------------ //

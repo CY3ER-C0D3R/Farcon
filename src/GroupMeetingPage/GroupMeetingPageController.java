@@ -174,7 +174,7 @@ public class GroupMeetingPageController implements Initializable, ControlledScre
         BufferedImage bufferedImage = null;
         try {
             if(signedIn)
-                bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/007-profile-photo.png"));
+                bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/007-profile-photo." + Context.getInstance().getPhoto_extention()));
             else //use default picture
                 bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/004-user.png"));
         } catch (IOException ex) {
