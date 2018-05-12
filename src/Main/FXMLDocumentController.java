@@ -709,12 +709,17 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
         BufferedImage bufferedImage = null;
         try {
             if(signedIn)
-                bufferedImage = ImageIO.read(getClass().getResource("/Resources/007-profile-photo." + Context.getInstance().getPhoto_extention()).openStream());
+            {
+                File f = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\src\\Resources\\007-profile-photo." + Context.getInstance().getPhoto_extention());
+                bufferedImage = ImageIO.read(f);
+            }
             else //use default picture
-                bufferedImage = ImageIO.read(getClass().getResource("/Resources/004-user.png").openStream());
-              
+            {
+                File f = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\src\\Resources\\004-user.png");
+                bufferedImage = ImageIO.read(f);
+            } 
         } catch (IOException ex) {
-            Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println(ex.getMessage());
         }
         Image img = SwingFXUtils.toFXImage(bufferedImage, null);
         this.profile_picture_circle.setFill(new ImagePattern(img));

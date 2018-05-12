@@ -102,13 +102,21 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
+        this.clientsock = Context.getInstance().getClientsock();
+        this.output = Context.getInstance().getOutput();
+        this.input = Context.getInstance().getInput();
+        Context.getInstance().setS_f(this);
+        updateStatusBar();
+        updatePage();
+    }
+
+    public void updatePage(){
         try {
-            // TODO
-            this.clientsock = Context.getInstance().getClientsock();
-            this.output = Context.getInstance().getOutput();
-            this.input = Context.getInstance().getInput();
-            Context.getInstance().setS_f(this);
-            updateStatusBar();
+            // make all the text and password fields blank
+            this.email_field.setText("");
+            this.username_field.setText("");
+            this.password_field.setText("");
+            this.confirm_password_field.setText("");
             // set the default profile photo
             BufferedImage bufferedImage = ImageIO.read(getClass().getResource("/Resources/004-user.png").openStream());
             Image img = SwingFXUtils.toFXImage(bufferedImage, null);
@@ -128,12 +136,17 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
         BufferedImage bufferedImage = null;
         try {
             if(signedIn)
-                bufferedImage = ImageIO.read(getClass().getResource("/Resources/007-profile-photo." + Context.getInstance().getPhoto_extention()).openStream());
+            {
+                File f = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\src\\Resources\\007-profile-photo." + Context.getInstance().getPhoto_extention());
+                bufferedImage = ImageIO.read(f);
+            }
             else //use default picture
-                bufferedImage = ImageIO.read(getClass().getResource("/Resources/004-user.png").openStream());
-              
+            {
+                File f = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\src\\Resources\\004-user.png");
+                bufferedImage = ImageIO.read(f);
+            } 
         } catch (IOException ex) {
-            Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
+            System.err.println(ex.getMessage());
         }
         Image img = SwingFXUtils.toFXImage(bufferedImage, null);
         this.profile_picture_circle.setFill(new ImagePattern(img));
@@ -181,7 +194,7 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
             
             //send data to server
             SendMessage(jsonObject);
-            
+                        
         } catch (JSONException ex) {
             Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
         } 

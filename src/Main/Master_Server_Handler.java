@@ -11,6 +11,8 @@ import Main.FXMLDocumentController;
 import OnlineChatPage.OnlineChatPageController;
 import Common.Context;
 import Common.Utils;
+import SignInPage.SignIn_FormController;
+import SignUpPage.SignUp_FormController;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -41,6 +43,8 @@ public class Master_Server_Handler extends Thread {
     private FXMLDocumentController f;
     private GroupMeetingPageController g;
     private GroupCollaborationPageController gc;
+    private SignUp_FormController s_u;
+    private SignIn_FormController s_i;
     private OnlineChatPageController o;
     
     BufferedReader input;
@@ -213,6 +217,8 @@ public class Master_Server_Handler extends Thread {
     public void Sign_Up_Reply(JSONObject jsonObject){
         // function updates the client of his sign up status
         
+        this.s_u = Context.getInstance().getS_f();
+        
         try {    
             String status = jsonObject.getString("Status");
             if(status.equals("")) //sign up was successful
@@ -231,6 +237,10 @@ public class Master_Server_Handler extends Thread {
                         f.changeToSignIn(null);
                         f.setRC_Password(rc_password);
                         f.updatePage();
+                        
+                        // reset the page to default values
+                        if(s_u != null)
+                            s_u.updatePage();
                      }
                  });
             }
@@ -244,6 +254,7 @@ public class Master_Server_Handler extends Thread {
     
     public void Sign_In_Reply(JSONObject jsonObject){
         // function updates the client of his sign up status
+        this.s_i = Context.getInstance().getS_i();
         
         try {    
             String status = jsonObject.getString("Status");
@@ -267,6 +278,10 @@ public class Master_Server_Handler extends Thread {
                              f.setID(id);
                              f.setRC_Password(rc_password);
                              f.updatePage();
+                             // change sign in button to sign out
+                             System.out.println("Here in sign in, changing to sign out");
+                             if(s_i != null)
+                                 s_i.changeToSignOut();
                              // update profile picture on all pages
                              // update resource from which photo will be updated
                              File file = new File(Paths.get(".").toAbsolutePath().normalize().toString() + "\\src\\Resources\\007-profile-photo." + Context.getInstance().getPhoto_extention());
@@ -293,7 +308,8 @@ public class Master_Server_Handler extends Thread {
             else{ // sign up was unsuccessful
                 this.DisplayNotification("Unsuccessful Sign In", status);
                 // change sign in button to function again
-                        // todo
+                if(s_i != null)
+                    s_i.changeToSignIn();
             }   
         } catch (JSONException ex) {
             Logger.getLogger(Master_Server_Handler.class.getName()).log(Level.SEVERE, null, ex);
@@ -323,18 +339,19 @@ public class Master_Server_Handler extends Thread {
                         f.setID(id);                        
                         f.setRC_Password(rc_password);
                         f.updatePage();
+                        // make sign in available again
+                        if(s_i != null)
+                            s_i.changeToSignIn();
                         // update profile picture on all pages to default
                         Context.getInstance().UpdateProfilePicture(); 
-                        
-                        //return to remote control page - "Home Page"
-                        f.setHomePage();
                      }
                  });
             }
             else{ // sign up was unsuccessful
-                this.DisplayNotification("Unsuccessful Sign In", status);
-                // change sign in button to function again
-                        // todo
+                this.DisplayNotification("Unsuccessful Sign Out", status);
+                // make sure the sign out button is still available
+                if(s_i != null)
+                    s_i.changeToSignOut();
             }   
         } catch (JSONException ex) {
             Logger.getLogger(Master_Server_Handler.class.getName()).log(Level.SEVERE, null, ex);
