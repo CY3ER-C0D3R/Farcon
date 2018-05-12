@@ -269,7 +269,7 @@ public class Master_Server_Handler extends Thread {
                              f.updatePage();
                              // update profile picture on all pages
                              // update resource from which photo will be updated
-                             File file = new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/007-profile-photo.png");
+                             File file = new File(Paths.get(".").toAbsolutePath().normalize().toString() + "\\src\\Resources\\007-profile-photo." + Context.getInstance().getPhoto_extention());
                              fos = new FileOutputStream(file);
                              fos.write(Utils.decodeImage(imageDataString));
                              fos.close();

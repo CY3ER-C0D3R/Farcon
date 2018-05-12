@@ -709,9 +709,10 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
         BufferedImage bufferedImage = null;
         try {
             if(signedIn)
-                bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/007-profile-photo." + Context.getInstance().getPhoto_extention()));
+                bufferedImage = ImageIO.read(getClass().getResource("/Resources/007-profile-photo." + Context.getInstance().getPhoto_extention()).openStream());
             else //use default picture
-                bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/004-user.png"));
+                bufferedImage = ImageIO.read(getClass().getResource("/Resources/004-user.png").openStream());
+              
         } catch (IOException ex) {
             Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
         }

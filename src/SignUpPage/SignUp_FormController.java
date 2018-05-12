@@ -24,6 +24,7 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.URL;
@@ -85,7 +86,7 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
     private Circle profile_picture_circle;
     
     @FXML
-    private ImageView profile_photo_img_selection;
+    private Circle profile_photo_img_selection;
 
     @FXML
     private ImageView profile_photo_img;
@@ -101,12 +102,20 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
      */
     @Override
     public void initialize(URL url, ResourceBundle rb) {
-        // TODO
-        this.clientsock = Context.getInstance().getClientsock();
-        this.output = Context.getInstance().getOutput();
-        this.input = Context.getInstance().getInput();
-        Context.getInstance().setS_f(this);
-        updateStatusBar();
+        try {
+            // TODO
+            this.clientsock = Context.getInstance().getClientsock();
+            this.output = Context.getInstance().getOutput();
+            this.input = Context.getInstance().getInput();
+            Context.getInstance().setS_f(this);
+            updateStatusBar();
+            // set the default profile photo
+            BufferedImage bufferedImage = ImageIO.read(getClass().getResource("/Resources/004-user.png").openStream());
+            Image img = SwingFXUtils.toFXImage(bufferedImage, null);
+            this.profile_photo_img_selection.setFill(new ImagePattern(img));
+        } catch (IOException ex) {
+            Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
+        }
     }
     
     public void updateStatusBar() {
@@ -119,9 +128,10 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
         BufferedImage bufferedImage = null;
         try {
             if(signedIn)
-                bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/007-profile-photo." + Context.getInstance().getPhoto_extention()));
+                bufferedImage = ImageIO.read(getClass().getResource("/Resources/007-profile-photo." + Context.getInstance().getPhoto_extention()).openStream());
             else //use default picture
-                bufferedImage = ImageIO.read(new File(Paths.get(".").toAbsolutePath().normalize().toString() + "/build/classes/Resources/004-user.png"));
+                bufferedImage = ImageIO.read(getClass().getResource("/Resources/004-user.png").openStream());
+              
         } catch (IOException ex) {
             Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -141,7 +151,7 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
     private void SignUpToServer(String email, String username, String password) {
 
         //profile photo is set by the current picture of user in resources
-        File file = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"/build/classes/Resources/007-profile-photo." + ext);
+        File file = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\src\\Resources\\007-profile-photo." + ext);
         FileInputStream fis = null;
         String imageDataString = "";
         byte imageData[] = null;
@@ -215,7 +225,6 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
     private void choose_profile_photo(MouseEvent event){
         // open file dialog to choose the profile photo
         FileChooser fc = new FileChooser();
-        //fc.setInitialDirectory(new File("C:\\Users\\admin\\Desktop\\project icons\\png"));
         fc.getExtensionFilters().addAll(
             new ExtensionFilter("PNG Files", "*.png"),
             new ExtensionFilter("JPG Files", "*.jpg"),
@@ -229,29 +238,12 @@ public class SignUp_FormController implements Initializable, ControlledScreen {
             File source = new File(selectedFile.getAbsolutePath());
             this.ext = Utils.getExtension(source);
             Context.getInstance().setPhoto_extention(ext);
-            System.out.println(Paths.get(".").toAbsolutePath().normalize().toString()+"\\build\\classes\\Resources\\007-profile-photo." + ext);
-            File dest = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\build\\classes\\Resources\\007-profile-photo." + ext);
+            File dest = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\src\\Resources\\007-profile-photo." + ext);
             try {
                 copyFileUsingChannel(source, dest);
                 BufferedImage bufferedImage = ImageIO.read(selectedFile);
                 Image img = SwingFXUtils.toFXImage(bufferedImage, null);
-                this.profile_photo_img_selection.setImage(img);
-                
-                // make the image circular
-//                int x = 100;
-//                int y = 100;
-//                int radius = 50;
-//                int margin = 10;
-//                BufferedImage bi = new BufferedImage(2*radius+(2*margin),2*radius+(2*margin),BufferedImage.TYPE_INT_ARGB);
-//                Graphics2D g = bi.createGraphics();
-//                g.translate(bi.getWidth()/2, bi.getHeight()/2);
-//                Arc2D myArea = new Arc2D.Float(0-radius, 0-radius, 2*radius, 2*radius, 0, -360, Arc2D.OPEN);
-//                AlphaComposite composite = AlphaComposite.getInstance(AlphaComposite.CLEAR, 0.0f);
-//                g.setComposite(composite);
-//                g.setComposite(AlphaComposite.getInstance(AlphaComposite.SRC_OVER));
-//                g.setClip(myArea);
-//                g.drawImage(bufferedImage.getSubimage(x-radius, y-radius, x+radius, y+radius), -radius, -radius, this.profile_photo_img_selection);
-                
+                this.profile_photo_img_selection.setFill(new ImagePattern(img));
             } catch (IOException ex) {
                 Logger.getLogger(SignUp_FormController.class.getName()).log(Level.SEVERE, null, ex);
             }

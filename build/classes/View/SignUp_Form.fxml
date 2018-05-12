@@ -208,14 +208,6 @@
                                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                             </GridPane.margin>
                         </Label>
-                        <ImageView fx:id="profile_photo_img_selection" fitHeight="50.0" fitWidth="50.0" onMouseClicked="#choose_profile_photo" pickOnBounds="true" preserveRatio="true" GridPane.columnIndex="1" GridPane.rowIndex="4">
-                            <image>
-                                <Image url="Resources/007-profile-photo.png" />
-                            </image>
-                            <GridPane.margin>
-                                <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
-                            </GridPane.margin>
-                        </ImageView>
                         <JFXButton alignment="CENTER" onAction="#SignUp" prefHeight="32.0" prefWidth="180.0" text="Sign Up" textFill="#e8e6e6" GridPane.columnIndex="1" GridPane.halignment="LEFT" GridPane.hgrow="ALWAYS" GridPane.rowIndex="5">
                             <GridPane.margin>
                                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
@@ -252,6 +244,11 @@
                                 <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
                             </GridPane.margin>
                         </Label>
+                  <Circle fx:id="profile_photo_img_selection" fill="WHITESMOKE" onMouseClicked="#choose_profile_photo" radius="22.0" stroke="BLACK" strokeType="INSIDE" styleClass="stroke-style-A" GridPane.columnIndex="1" GridPane.rowIndex="4">
+                     <GridPane.margin>
+                        <Insets bottom="10.0" left="10.0" right="10.0" top="10.0" />
+                     </GridPane.margin>
+                  </Circle>
                     </children>
                     <padding>
                         <Insets left="20.0" right="20.0" />
