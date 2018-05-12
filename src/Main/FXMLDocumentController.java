@@ -149,6 +149,9 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
     private Circle profile_picture_circle;
     
     @FXML
+    private Label username_label;
+    
+    @FXML
     private Label status_label;
     
     @FXML
@@ -712,11 +715,14 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
             {
                 File f = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\src\\Resources\\007-profile-photo." + Context.getInstance().getPhoto_extention());
                 bufferedImage = ImageIO.read(f);
+                // update username label
+                this.username_label.setText(Context.getInstance().getUsername());
             }
             else //use default picture
             {
                 File f = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\src\\Resources\\004-user.png");
                 bufferedImage = ImageIO.read(f);
+                this.username_label.setText("User");
             } 
         } catch (IOException ex) {
             System.err.println(ex.getMessage());

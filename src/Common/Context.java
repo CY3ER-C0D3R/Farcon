@@ -40,6 +40,8 @@ public class Context {
     private int serverPort;
     private int connectionTimeout;
     
+    private String username;
+    
     private FXMLDocumentController f;
     private GroupMeetingPageController g;
     private SignUp_FormController s_u;
@@ -71,6 +73,14 @@ public class Context {
         return instance;
     }
 
+    public String getUsername() {
+        return username;
+    }
+
+    public void setUsername(String username) {
+        this.username = username;
+    }
+    
     public String getServerhostname() {
         return serverhostname;
     }

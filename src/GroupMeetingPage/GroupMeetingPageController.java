@@ -121,6 +121,9 @@ public class GroupMeetingPageController implements Initializable, ControlledScre
     
     @FXML
     private Circle profile_picture_circle;
+    
+    @FXML
+    private Label username_label;
 
     /**
      * Initializes the controller class.
@@ -178,11 +181,14 @@ public class GroupMeetingPageController implements Initializable, ControlledScre
             {
                 File f = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\src\\Resources\\007-profile-photo." + Context.getInstance().getPhoto_extention());
                 bufferedImage = ImageIO.read(f);
+                // update username label
+                this.username_label.setText(Context.getInstance().getUsername());
             }
             else //use default picture
             {
                 File f = new File(Paths.get(".").toAbsolutePath().normalize().toString()+"\\src\\Resources\\004-user.png");
                 bufferedImage = ImageIO.read(f);
+                this.username_label.setText("User");
             } 
         } catch (IOException ex) {
             System.err.println(ex.getMessage());

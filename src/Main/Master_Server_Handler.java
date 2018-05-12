@@ -269,6 +269,8 @@ public class Master_Server_Handler extends Thread {
                 this.rc_password = jsonObject.getString("Password");
                 // update signed in variable
                 Context.getInstance().setSignedIn(true);
+                // update username variable
+                Context.getInstance().setUsername(username);
                 Platform.runLater(new Runnable() {
                      @Override
                      public void run() {
