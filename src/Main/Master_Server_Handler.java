@@ -151,12 +151,13 @@ public class Master_Server_Handler extends Thread {
             }
             // remote control related replies
             else if (action.equals("register-local-server")){
-                //System.out.println("register-local-server");
-                //System.out.println(parameters);
                 this.Register_Local_Server_Reply(parameters);
             }
             else if(action.equals("remote-control-request")){
                 this.ReturnRemoteHost_Reply(parameters);
+            }
+            else if (action.equals("remote-control-attempt")){
+                this.UpdateRemoteHost_Attempt(parameters);
             }
             // group related replies
             else if(action.equals("init-group-server")){
@@ -421,6 +422,24 @@ public class Master_Server_Handler extends Thread {
             }
         } catch (JSONException ex) {
             Logger.getLogger(Master_Server_Handler.class.getName()).log(Level.SEVERE, null, ex);
+        }
+    }
+    
+    public void UpdateRemoteHost_Attempt(JSONObject jsonObject) {
+        // function updates status bar with the connection attempt
+
+        try {
+            String status = jsonObject.getString("Status");
+            String remote_id = jsonObject.getString("ID");
+            System.out.println(String.format("%s is attempting to connect to local host.", remote_id));
+            Platform.runLater(new Runnable() {
+                @Override
+                public void run() {
+                    Context.getInstance().UpdateStatusBar(status, false);
+                }
+            });
+        } catch (JSONException ex) {
+            System.err.println(ex.getMessage());
         }
     }
     

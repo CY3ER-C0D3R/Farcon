@@ -206,17 +206,21 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
                             false);
         System.out.println("Here in client, got this users list: ");
         System.out.println(connected_users);
-        while(StrTok.hasMoreTokens())
-        {
-            String id = StrTok.nextToken();
-            if (!id.equals(this.my_id)) {
-                this.connected_users.add(id);
-                System.out.println(this.connected_users);
-                this.id_combobox.getItems().add(id);
+        // if only one token, that means no other users are connected
+        if (StrTok.countTokens() == 1) {
+            this.id_combobox.getItems().add("No Connected Users.");
+        } else {
+            while (StrTok.hasMoreTokens()) {
+                String id = StrTok.nextToken();
+                if (!id.equals(this.my_id)) {
+                    this.connected_users.add(id);
+                    System.out.println(this.connected_users);
+                    this.id_combobox.getItems().add(id);
+                }
             }
         }
     }
-    
+
     public void addConnectedUserToCombobox(String id){
         this.id_combobox.getItems().add(id);
     }
@@ -280,50 +284,59 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
     }
     
     @FXML
-    private void requestconnectionToRemoteServer(Event event){
+    private void requestconnectionToRemoteServer(Event event) {
         String remote_id = "";
-        if(!this.id_combobox.getSelectionModel().isEmpty())
+        if (!this.id_combobox.getSelectionModel().isEmpty()) {
             remote_id = this.id_combobox.getSelectionModel().getSelectedItem();
+        }
+        if (remote_id.equals(my_id)) {
+            remote_id = "Me";
+        }
+        System.out.println("HERE ID FOUND IS");
         System.out.println(remote_id);
         String remote_Username = "";
-        // check if id entered is username or not
-        if(Pattern.matches(".*[a-zA-Z].*", remote_id))
+        if (remote_id.equals("No Connected Users.")) // no other users to connect to
         {
-            remote_Username = remote_id;
-            remote_id = "";
-            System.out.println("Remote Username entered: " + remote_Username);
-        }
-        System.out.println("is connected to master server ?");
-        System.out.println(Context.getInstance().isConnectedToMasterServer());
-        if(!Context.getInstance().isConnectedToMasterServer())
+            this.DisplayNotification("No Connected Users", "No others users online to connect to.");
+        } else if (remote_id.equals("Me")) // cant connect to myself
+        {
+            this.DisplayNotification("Invalid ID", "Cannot connect to self.");
+        } else if (!Context.getInstance().isConnectedToMasterServer()) // check if connected to master server
+        {
             DisplayNotification("Error", "Couldn't connect to remote host since\n not connected to Master Server");
-        else if(!remote_id.equals("") || !remote_Username.equals(""))
-        {
-            // update status bar 
-            System.out.println("Connecting to remote server");
-            
-            Context.getInstance().UpdateStatusBar("Connecting to Remote Host...", false);
-            //this.updateStatus("Connecting to Remote Host...", false);
-            
-            //request ip, port for the remote server from the Master Server 
-            JSONObject jsonObject = new JSONObject();
-            JSONObject parameters = new JSONObject();
-            try {
-                jsonObject.put("Action", "remote-control-request");
-                parameters.put("ID", remote_id);
-                parameters.put("Username", remote_Username);
-                jsonObject.put("Parameters", parameters);
-            } catch (JSONException ex) {
-                Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+        } else {
+            // check if id entered is username or not
+            if (Pattern.matches(".*[a-zA-Z].*", remote_id)) {
+                remote_Username = remote_id;
+                remote_id = "";
+                System.out.println("Remote Username entered: " + remote_Username);
             }
-            SendMessage(jsonObject);
-        }
-        else // display a notification
-        {
-            this.DisplayNotification("Invalid ID", "Please enter a name or an ID number");
+            if (!remote_id.equals("") || !remote_Username.equals("")) {
+                // update status bar 
+                System.out.println("Connecting to remote server");
+
+                Context.getInstance().UpdateStatusBar("Connecting to Remote Host...", false);
+                //this.updateStatus("Connecting to Remote Host...", false);
+
+                //request ip, port for the remote server from the Master Server 
+                JSONObject jsonObject = new JSONObject();
+                JSONObject parameters = new JSONObject();
+                try {
+                    jsonObject.put("Action", "remote-control-request");
+                    parameters.put("ID", remote_id);
+                    parameters.put("Username", remote_Username);
+                    jsonObject.put("Parameters", parameters);
+                } catch (JSONException ex) {
+                    Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
+                }
+                SendMessage(jsonObject);
+            } else // display a notification
+            {
+                this.DisplayNotification("Invalid ID", "Please enter a name or an ID number");
+            }
         }
     }
-    
+
     public void connectToRemoteServer(String ip, int port, String remote_ID){
         // update status bar 
         System.out.println("Remote server authentication, Password needs to be entered.");
@@ -580,6 +593,7 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
                     id_field.setText(my_id);
                     my_rc_password = jsonObject.getString("RC_Password");
                     password_field.setText(my_rc_password);
+                    Context.getInstance().setUsername(username);
                     //String connected_users = jsonObject.getString("Connected_Users");
                     //updateConnectedUsers(connected_users);
                 } catch (JSONException ex) {

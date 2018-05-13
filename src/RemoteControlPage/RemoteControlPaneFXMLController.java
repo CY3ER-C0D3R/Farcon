@@ -110,7 +110,7 @@ public class RemoteControlPaneFXMLController implements Initializable, Controlle
         this.command_panel.fitWidthProperty().bind(this.command_pane.widthProperty());
         this.command_panel.fitHeightProperty().bind(this.command_pane.heightProperty());
         this.command_panel.requestFocus();
-        rc = new RemoteClient("Remote client", this, this.remote_ID, this.remote_Password, this.remote_ip, this.remote_port);
+        rc = new RemoteClient(Context.getInstance().getUsername(), this, this.remote_ID, this.remote_Password, this.remote_ip, this.remote_port);
         
     }    
 

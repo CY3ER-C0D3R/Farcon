@@ -4,6 +4,7 @@
  * and open the template in the editor.
  */
 package RemoteControlPage;
+import Common.Context;
 import Common.RemoteGUIInterface;
 import java.awt.image.BufferedImage;
 import java.io.*;
@@ -11,6 +12,7 @@ import java.util.*;
 import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import javafx.application.Platform;
 import javax.imageio.ImageIO;
 import javax.swing.*;
 
@@ -46,9 +48,6 @@ public class RemoteClient {
             this.remote_server_ip = RemoteIP;
             this.remote_server_port = RemotePort;
             serverInetAddr = InetAddress.getByName(this.remote_server_ip);
-            //serverInetAddr = InetAddress.getByName("172.16.15.140");
-            //serverInetAddr = InetAddress.getByName("172.17.20.242");
-            //serverInetAddr = InetAddress.getByName("192.168.1.181");
             
             sock = new Socket(serverInetAddr, this.remote_server_port);
             System.out.println("Connected to server on "
@@ -85,7 +84,17 @@ public class RemoteClient {
                     }
                 };
                 thread.start();
-                SendCommand("NAME=" + clientName + ";");
+                System.out.println("Here with client name: " + clientName);
+                SendCommand("Name=" + clientName + ";");
+            }
+            else{
+                //update display - Authentication Failed, change after 5 seconds
+                Platform.runLater(new Runnable() {
+                    @Override
+                    public void run() {
+                        Context.getInstance().UpdateStatusBar("Authentication Failed", true);
+                    }
+                });
             }
         }
         catch (Exception ex) {

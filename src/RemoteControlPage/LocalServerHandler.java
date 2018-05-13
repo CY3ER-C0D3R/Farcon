@@ -90,14 +90,6 @@ public class LocalServerHandler extends Thread {
             clientPort = sock.getPort();
             clientIP = sock.getInetAddress().toString();
             //vertify client (make sure password is correct before communication
-            //update display - "Awaiting Authentication"
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    Context.getInstance().UpdateStatusBar("Awaiting Authentication...", false);
-                    //f.updateStatusBar("Awaiting Authentication...", false);
-                }
-            });
             VertifyClient();
             if (clientVertified) {
                 //update display - all is good
@@ -132,7 +124,7 @@ public class LocalServerHandler extends Thread {
                                 ostr.writeObject(imgBytes);
                             } catch (IOException ex) {
                                System.out.println("Client disconnected");
-                               f.DisplayNotification("Client Disconnected", String.format("Client (%s,%d) disconnected from server.", clientIP, clientPort));
+                               //f.DisplayNotification("Client Disconnected", String.format("Client (%s,%d) disconnected from server.", clientIP, clientPort));
                                break;
                             }
                         }
@@ -140,17 +132,9 @@ public class LocalServerHandler extends Thread {
                 };
                 thread.start();
             }
-            //update display - Authentication Failed, change after 5 seconds
-            Platform.runLater(new Runnable() {
-                @Override
-                public void run() {
-                    Context.getInstance().UpdateStatusBar("Authentication Failed", true);
-                    //f.updateStatusBar("Authentication Failed", true);
-                }
-            });
         }
         catch (Exception ex) {
-            ex.printStackTrace();
+            System.err.println(ex.getMessage());
         }
     }
 
@@ -187,6 +171,14 @@ public class LocalServerHandler extends Thread {
                     System.out.println("Client has not been Vertified on Local Server (Wrong Password Entered).");
                     // return a unsuccessful message to the client
                     this.ostr.writeObject("Not Vertified");
+
+                    //update display - Authentication Failed, change after 5 seconds
+                    Platform.runLater(new Runnable() {
+                        @Override
+                        public void run() {
+                            Context.getInstance().UpdateStatusBar("Authentication Failed", true);
+                        }
+                    });
                 }
             }
         } catch (IOException ex) {
@@ -212,7 +204,7 @@ public class LocalServerHandler extends Thread {
                     StringTokenizer inStrTok = new StringTokenizer(inMsg, ";",
                             false);
                     String msgCode = inStrTok.nextToken();
-                    if (msgCode.equals("Name=")) {
+                    if (msgCode.startsWith("Name=")) {
                         this.clientName = msgCode.split("=")[1];
                     } else if (msgCode.equals("Event=Mouse")) {
                         HandleMouse(inStrTok);
@@ -240,10 +232,10 @@ public class LocalServerHandler extends Thread {
             }
             catch (IOException ex) {
                 synchronized (LocalServerHandler.class) {
-                    if (!shouldExit) {
+                    if (!shouldExit && clientVertified) {
                         shouldExit = true;
                         System.out.println("Client disconnected");
-                        f.DisplayNotification("Client Disconnected", String.format("Client (%s,%d) disconnected from server.", clientIP, clientPort));
+                        f.DisplayNotification("Client Disconnected", String.format("Client %s disconnected from server.", clientName));
                         break;
                     }
                 }

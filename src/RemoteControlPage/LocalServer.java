@@ -114,7 +114,7 @@ public class LocalServer {
                         // or sends an END message.
                         clientConnection = serverSock.accept();
                     } catch (IOException ex) {
-                        Logger.getLogger(LocalServer.class.getName()).log(Level.SEVERE, null, ex);
+                        System.err.println(ex.getMessage());
                     }
                     int clientPort = clientConnection.getPort();
                     String clientIP = clientConnection.getInetAddress().toString();
