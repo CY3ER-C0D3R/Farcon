@@ -152,12 +152,6 @@ public class LocalServerHandler extends Thread {
                 id = msgCode.split("=")[1];
                 msgCode = inStrTok.nextToken();
                 rc_password = msgCode.split("=")[1];
-                System.out.println("ID Recieved: " + id);
-                System.out.println("My ID: " + this.server_ID);
-                System.out.println(id.equals(this.server_ID));
-                System.out.println("Remote Control Password Recieved: " + rc_password);
-                System.out.println("My Remote Control Password: " + this.server_RC_Password);
-                System.out.println(rc_password.equals(this.server_RC_Password));
                 if(id.equals(this.server_ID) && rc_password.equals(this.server_RC_Password)) //client is vertified
                 {
                     this.clientVertified = true;
