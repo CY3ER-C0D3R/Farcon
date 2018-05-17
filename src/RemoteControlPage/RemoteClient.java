@@ -6,6 +6,7 @@
 package RemoteControlPage;
 import Common.Context;
 import Common.RemoteGUIInterface;
+import static RemoteControlPage.LocalServerHandler.shouldExit;
 import java.awt.image.BufferedImage;
 import java.io.*;
 import java.util.*;
@@ -31,6 +32,7 @@ public class RemoteClient {
     String remote_server_ip;
     int remote_server_port;
     boolean vertified_on_server;
+    RemoteControlPaneFXMLController ri;
     
     
     /**
@@ -40,8 +42,9 @@ public class RemoteClient {
      * @param clName client name for future recognition in server
      * @param ri
      */
-    public RemoteClient(String clName, RemoteGUIInterface ri, String RemoteID, String RemotePassword, String RemoteIP, int RemotePort) {
+    public RemoteClient(String clName, RemoteGUIInterface ri1, String RemoteID, String RemotePassword, String RemoteIP, int RemotePort) {
         try {
+            this.ri = (RemoteControlPaneFXMLController) ri1;
             clientName = clName;
             this.remote_server_id = RemoteID;
             this.remote_server_password = RemotePassword;
@@ -75,9 +78,11 @@ public class RemoteClient {
                                     BufferedImage b = ImageIO.read(in);
                                     ri.UpdateScreen(b);
                                 }
-                            } catch (IOException ex) {
-                                break;
-                            } catch (ClassNotFoundException ex) {
+                            } catch (IOException | ClassNotFoundException ex) {
+                                ri.DisplayNotification("Host Disconnected", String.format("Session ended with %s.", remote_server_id));
+                                ri.exitRemoteControl();
+                                ////// Yuval: change the following....
+                                Context.getInstance().UpdateStatusBar("Session ended", true);
                                 break;
                             }
                         }
@@ -132,8 +137,27 @@ public class RemoteClient {
         if(vertified_on_server) {
             try {
                 ostr.writeObject(cmd);
+                RecvReply();
             } catch (IOException ex) {
-                Logger.getLogger(RemoteClient.class.getName()).log(Level.SEVERE, null, ex);
+                synchronized (LocalServerHandler.class) {
+                    if (!shouldExit && vertified_on_server) {
+                        shouldExit = true;
+                        System.out.println("Client disconnected");
+                        try
+                        {
+                            sock.shutdownInput();
+                            sock.shutdownOutput();
+                            sock.close();
+                        }
+                        catch(Exception ex2)
+                        {
+                        }
+                        ri.DisplayNotification("Host Disconnected", String.format("Session ended with %s.", remote_server_id));
+                        ri.exitRemoteControl();
+                        ////// Yuval: change the following....
+                        Context.getInstance().UpdateStatusBar("Session ended", true);
+                    }
+                }
             }
         }
     }

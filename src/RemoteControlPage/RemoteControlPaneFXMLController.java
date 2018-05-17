@@ -265,7 +265,6 @@ public class RemoteControlPaneFXMLController implements Initializable, Controlle
         double y = CalculateRelativePosition(e.getY(), false);
         //send commands to server
         this.rc.SendCommand(String.format("Event=Mouse;Type=Pressed;Parameters=%s;Position=%f:%f;",keyClicked,x,y));
-        this.rc.RecvReply();
     }
     
     /**
@@ -284,7 +283,6 @@ public class RemoteControlPaneFXMLController implements Initializable, Controlle
         System.out.println(keyClicked);
         //send commands to server
         this.rc.SendCommand(String.format("Event=Mouse;Type=Released;Parameters=%s;Position=%f:%f;",keyClicked,x,y));
-        this.rc.RecvReply();
     }
     /*
 
@@ -345,7 +343,6 @@ public class RemoteControlPaneFXMLController implements Initializable, Controlle
         double y = CalculateRelativePosition(e.getY(), false);
         //send commands to server
         this.rc.SendCommand(String.format("Event=Mouse;Type=Dragged;Parameters=%s;Position=%f:%f;",keyClicked,x,y));
-        this.rc.RecvReply();
     }
     
     /**
@@ -371,7 +368,6 @@ public class RemoteControlPaneFXMLController implements Initializable, Controlle
         
         //send commands to server
         this.rc.SendCommand(String.format("Event=Mouse;Type=Moved;Parameters=%s;Position=%f:%f;",keyClicked,x,y));
-        this.rc.RecvReply();
     }  
     
     /**
@@ -413,7 +409,6 @@ public class RemoteControlPaneFXMLController implements Initializable, Controlle
         double y = CalculateRelativePosition(e.getY(), false);
         //send commands to server
         this.rc.SendCommand(String.format("Event=Mouse;Type=WheelMoved;Parameters=%s;Position=%f:%f;",notches,x,y));
-        this.rc.RecvReply();
     }
     
     //key listener events
@@ -441,7 +436,6 @@ public class RemoteControlPaneFXMLController implements Initializable, Controlle
         
         //send key command to server
         this.rc.SendCommand(String.format("Event=Key;Type=Pressed;%s;",parameters));
-        this.rc.RecvReply();
     }
     
     public void HandleHotKeys(KeyEvent event){
@@ -481,7 +475,6 @@ public class RemoteControlPaneFXMLController implements Initializable, Controlle
         
         //send key command to server
         this.rc.SendCommand(String.format("Event=Key;Type=Released;%s;",parameters));
-        this.rc.RecvReply();
     }    
     
     @FXML

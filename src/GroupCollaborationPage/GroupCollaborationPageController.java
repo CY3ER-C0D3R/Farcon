@@ -340,7 +340,7 @@ public class GroupCollaborationPageController implements Initializable, Controll
     
     @FXML
     public void keyTyped(KeyEvent e) {
-        if (e.getSource() == this.file_editor) {
+        if (e.getSource() == this.file_editor && e.getCode() != KeyCode.UNDEFINED) {
             try {
                 int caretPos = this.file_editor.getCaretPosition();
                 int rowNum = 0;
@@ -370,10 +370,14 @@ public class GroupCollaborationPageController implements Initializable, Controll
                     str = " ";
                 
                 int p= this.file_editor.getCaretPosition();
-                System.out.println(e.getCode());
-                System.out.println(e.getText());
-                System.out.println(KeyCode.BACK_SPACE);
-                System.out.println(KeyCode.DELETE);
+                System.out.println("Here handling keycodes: ");
+                System.out.println(e);
+                System.out.println(e.getCode().getName());
+                //System.out.println(e.getText());
+                System.out.println(KeyCode.BACK_SPACE.getName());
+                System.out.println(KeyCode.DELETE.getName());
+                System.out.println("True or not? ");
+                System.out.println(KeyCode.DELETE.impl_getCode() == e.getCode().impl_getCode());
                 if(e.getCode().equals(KeyCode.BACK_SPACE))
                 {
                     str = "B";
@@ -400,6 +404,8 @@ public class GroupCollaborationPageController implements Initializable, Controll
 
     @FXML
     public void keyPressed(KeyEvent e) {
+        System.out.println("KEY PRESSED");
+        System.out.println(e.getCode().impl_getCode());
          if (e.getSource() == this.file_editor) {
             try {
                 int caretPos = this.file_editor.getCaretPosition();
@@ -432,8 +438,70 @@ public class GroupCollaborationPageController implements Initializable, Controll
                 int p= this.file_editor.getCaretPosition();
                 System.out.println(e.getCode());
                 System.out.println(e.getText());
-                System.out.println(KeyCode.BACK_SPACE);
-                System.out.println(KeyCode.DELETE);
+                System.out.println(KeyCode.BACK_SPACE.getName());
+                System.out.println(KeyCode.DELETE.getName());
+                if(e.getCode().equals(KeyCode.BACK_SPACE))
+                {
+                    str = "B";
+                    operation = "del";
+                    //if(p > 0)
+                      //  p--;
+                } 
+                else if(e.getCode().equals(KeyCode.DELETE))
+                {
+                    str = "D";
+                    operation = "del";
+                }
+                position = (new Integer(p)).toString();
+
+                //String data = operation+";"+str+";"+rowNum+";"+colNum; 
+                String data = operation + ";" + str + ";" + position;
+                System.out.println("data: " + data);
+                this.UpdateData(data, null);
+            } catch (Exception ex) {
+                Logger.getLogger(GroupCollaborationPageController.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    @FXML
+    public void keyReleased(KeyEvent e) {
+        System.out.println("KEY Released");
+        System.out.println(e.getCode().impl_getCode());
+         if (e.getSource() == this.file_editor && (e.getCode() == KeyCode.DELETE || e.getCode() == KeyCode.BACK_SPACE)) {
+            try {
+                int caretPos = this.file_editor.getCaretPosition();
+                int rowNum = 0;
+                int colNum = 0;
+                String text = this.file_editor.getText();
+                int counter = 0;
+                while(counter != caretPos) {
+                    Character ch = text.charAt(counter);
+                    if (ch.equals('\n')) {
+                        rowNum++;
+                        colNum = 0;
+                    }
+                    else
+                        colNum++;
+                    counter++;
+                }
+                String position = String.format("Row: %s, Col: %s",rowNum,colNum);
+                System.out.println(position);
+                
+                String operation = "ins";
+                position = "";
+                
+                
+                String str = e.getCharacter();
+                
+                if(str.equals("\n"))
+                    str = " ";
+                
+                int p= this.file_editor.getCaretPosition();
+                System.out.println(e.getCode());
+                System.out.println(e.getText());
+                System.out.println(KeyCode.BACK_SPACE.getName());
+                System.out.println(KeyCode.DELETE.getName());
                 if(e.getCode().equals(KeyCode.BACK_SPACE))
                 {
                     str = "B";

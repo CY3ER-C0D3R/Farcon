@@ -2,6 +2,23 @@
 <project-private xmlns="http://www.netbeans.org/ns/project-private/1">
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
-        <group/>
+        <group>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/Main/main.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/RemoteControlPage/RemoteClient.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/RemoteControlPage/LocalServer.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/SignUpPage/SignUp_FormController.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/Main/FXMLDocumentController.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/GroupMeetingPage/GroupMeetingPageController.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/GroupCollaborationPage/LocalCollaborationGroupServerHandler.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/RemoteControlPage/RemoteControlPaneFXMLController.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/GroupCollaborationPage/GroupCollaborationPageController.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/Main/Master_Server_Handler.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/SignInPage/SignIn_FormController.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/Common/Context.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/RemoteControlPage/LocalServerHandler.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/GroupCollaborationPage/RemoteGroupClient.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/OnlineChatPage/OnlineChatPageController.java</file>
+            <file>file:/C:/Users/admin/Desktop/FileTesting/XML%20learning/Farcon/src/RemoteControlPage/RemoteControlPaneDrawerController.java</file>
+        </group>
     </open-files>
 </project-private>

@@ -1,7 +1,16 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Farcon Software 
+ *
+ * This program a Group Collaboration and
+ * Remote Control Software, free of charge, 
+ * for personal or commercial use.
+ *
+ * Open source, code written in javafx.
+ * Written by: Yuval Stein @CY3ER-C0D3R
+ *  
+ * https://github.com/CY3ER-C0D3R/Farcon
+ *
+ * 2018 (c) Farcon
  */
 package Main;
 
@@ -26,39 +35,73 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 
 /**
- *
- * @author admin
+ * This class is the starting point of the application.
+ * Sets the properties for the program and the window, and loads the main
+ * screens to the ScreensController. Changing screens is done by using 
+ * the static variables defined in this class.
+ * @author Yuval Stein
  */
 public class main extends Application{
     
+    /**
+     * scene is the main scene of the application and can be referred to 
+     * indirectly from other classes.
+     */
     private static Scene scene;
+    /**
+     * robot is used to control the computer when needed and can be referred to 
+     * indirectly from other classes.
+     */
     private static Robot robot;
-    
+    /**
+     * mainContainer is used to control the current page displayed and to load 
+     * a different page when needed. mainContainer can be referred to directly
+     * from other classes.
+     */
     public static ScreensController mainContainer = new ScreensController();
     
-    // Home page
+    /**
+     * ID of the Home page file, also referred to as the 
+     * Remote Control information page file.
+     */
     public static String homePageID = "main";
     public static String homePageFile = "FXMLDocument.fxml";
-    // Sign Up page
+    /**
+     * ID of the Sign Up page file.
+     */
     public static String SignUpPageID = "SignUpPage";
     public static String SignUpPageFile = "SignUp_Form.fxml";
-    // Sign In page
+    /**
+     * ID of the Sign In page file.
+     */
     public static String SignInPageID = "SignInPage";
     public static String SignInPageFile = "SignIn_Form.fxml";
-    // Remote Control Page
+    /**
+     * ID of the Remote Control pane page file.
+     */
     public static String RemotePageID = "RemoteControlPage";
-    public static String RemotePageFile = "RemoteControlPaneTestFXML.fxml";
-    //public static String RemotePageFile = "RemoteControlPaneFXML.fxml";
-    // Group Meeting Page
+    public static String RemotePageFile = "RemoteControlPaneFXML.fxml";
+    /**
+     * ID of the Group Meeting page file.
+     */
     public static String GroupMeetingID = "GroupMeetingPage";
     public static String GroupMeetingPageFile = "GroupMeetingPage.fxml";
-    // Group Collaboraton Page
+    /**
+     * ID of the Group Collaboration page file.
+     */
     public static String GroupCollaborationID = "GroupCollaborationPage";
     public static String GroupCollaborationPageFile = "GroupCollaborationPage.fxml";
-    // Online Chat Page
+    /**
+     * ID of the Online Chat page file.
+     */
     public static String OnlineChatID = "OnlineChatPage";
     public static String OnlineChatPageFile = "OnlineChatPage.fxml";
     
+    /**
+     * 
+     * @param stage 
+     * @throws Exception 
+     */
     @Override
     public void start(Stage stage) throws Exception {
         
@@ -90,8 +133,8 @@ public class main extends Application{
         stage.getIcons().add(new Image("/Resources/falcon_icon.png"));
         // make the form only resizable to bigger or
         // equal than the following values
-        stage.setMinHeight(700);
-        stage.setMinWidth(900);
+        stage.setMinHeight(700); 
+        stage.setMinWidth(900);  
         
         stage.setOnCloseRequest(new EventHandler<WindowEvent>() {
             @Override
