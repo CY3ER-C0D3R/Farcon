@@ -1,7 +1,7 @@
 /*
  * Farcon Software 
  *
- * This program a Group Collaboration and
+ * This program is a Group Collaboration and
  * Remote Control Software, free of charge, 
  * for personal or commercial use.
  *
@@ -12,6 +12,7 @@
  *
  * 2018 (c) Farcon
  */
+
 package Main;
 
 import Common.ScreensController;
@@ -190,7 +191,7 @@ public class main extends Application{
             String serverhostname = (String)jsonObject.get("host");
             int port = (int)(long)jsonObject.get("port");
             int connectionTimeout = (int)(long)jsonObject.get("timeout");
-            
+			
             Context.getInstance().setServerhostname(serverhostname);
             Context.getInstance().setServerIP(ip);
             Context.getInstance().setServerPort(port);

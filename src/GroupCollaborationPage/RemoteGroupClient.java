@@ -1,8 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Farcon Software
+ *
+ * This program is a Group Collaboration and
+ * Remote Control Software, free of charge,
+ * for personal or commercial use.
+ *
+ * Open source, code written in javafx.
+ * Written by: Yuval Stein @CY3ER-C0D3R
+ *
+ * https://github.com/CY3ER-C0D3R/Farcon
+ *
+ * 2018 (c) Farcon
  */
+
 package GroupCollaborationPage;
 import RemoteControlPage.RemoteClient;
 import GroupCollaborationPage.GroupCollaborationPageController;
@@ -197,7 +207,7 @@ public class RemoteGroupClient{
         }
         else if (operation.equals("ins")) {
             this.gc.AddChar(cont, position);
-        } else {
+        } else if (operation.equals("del")){
             System.out.println("deleting");
             System.out.println(cont.equals(""));
             //System.out.println(st[2]);

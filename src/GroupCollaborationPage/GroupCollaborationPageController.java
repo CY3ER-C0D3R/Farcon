@@ -1,8 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Farcon Software
+ *
+ * This program is a Group Collaboration and
+ * Remote Control Software, free of charge,
+ * for personal or commercial use.
+ *
+ * Open source, code written in javafx.
+ * Written by: Yuval Stein @CY3ER-C0D3R
+ *
+ * https://github.com/CY3ER-C0D3R/Farcon
+ *
+ * 2018 (c) Farcon
  */
+
 package GroupCollaborationPage;
 
 import Common.RemoteConnectionData;
@@ -18,6 +28,10 @@ import com.jfoenix.controls.JFXDialogLayout;
 import com.jfoenix.controls.JFXDrawer;
 import com.jfoenix.controls.JFXPasswordField;
 import com.jfoenix.controls.JFXTextArea;
+import com.sun.glass.ui.Robot;
+import java.awt.Toolkit;
+import java.awt.datatransfer.Clipboard;
+import java.awt.datatransfer.StringSelection;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -28,6 +42,7 @@ import java.net.URL;
 import java.util.HashMap;
 import java.util.List;
 import java.util.ResourceBundle;
+import java.util.Scanner;
 import java.util.Timer;
 import java.util.TimerTask;
 import java.util.logging.Level;
@@ -72,8 +87,12 @@ public class GroupCollaborationPageController implements Initializable, Controll
     
     private LocalGroupServer server;
     private boolean LocalGroupServerIsOpen;
+    private boolean consumeKey;
+    
+    private int currentPosition;  // saves the carets position
     
     public HashMap<Socket, ObjectOutputStream> clientSockets;
+    private HashMap<KeyCombination, String> keys;
     private String remote_group_ip;
     private int remote_group_port;
     private String remote_group_ID;
@@ -95,11 +114,40 @@ public class GroupCollaborationPageController implements Initializable, Controll
         Context.getInstance().setGc(this);
         g = Context.getInstance().getG();
         clientID = Context.getInstance().getF().getID();
+        // If an unsupported key was typed consume the event,
+        // meaning do not allow the key to be typed in the editor.
+        consumeKey = false; 
         
+        this.file_editor.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                keyPressed(event);
+                if(consumeKey)
+                    event.consume();
+            }
+        });
+        this.file_editor.addEventFilter(KeyEvent.KEY_TYPED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if(consumeKey)
+                    event.consume();
+            }
+        });
+        this.file_editor.addEventFilter(KeyEvent.KEY_RELEASED, new EventHandler<KeyEvent>() {
+            @Override
+            public void handle(KeyEvent event) {
+                if(consumeKey)
+                    event.consume();
+                consumeKey = false;
+            }
+        });
+                
+        this.keys = new HashMap<>();
+        createKeyCombinations();
+
         this.clientSockets = new HashMap<>();
         
         RemoteConnectionData r = Context.getInstance().getRemote_group_data();
-        System.out.println(r);
         if(r != null)
             this.SetRemoteData(Context.getInstance().getRemote_group_data());
         
@@ -123,20 +171,15 @@ public class GroupCollaborationPageController implements Initializable, Controll
             if (selectedFile != null) {
                 Context.getInstance().setSelectedFileName(selectedFile.getAbsolutePath());
             }
-            System.out.println("umm here file name is " + Context.getInstance().getSelectedFileName());
             server = new LocalGroupServer(remote_group_ID, remote_group_Password);
-            //server.StartLocalGroupServer();
         }
          
         r = Context.getInstance().getRemote_group_data();
-        System.out.println(r);
         if(r != null)
             this.SetRemoteData(Context.getInstance().getRemote_group_data());
         
         System.out.println("Starting the collaboration server...");
-        System.out.println("ID,Password I have is:");
-        System.out.println(this.remote_group_ID);
-        System.out.println(this.remote_group_Password);
+        System.out.println(String.format("My GID and Password are: %s, %s ", this.remote_group_ID, this.remote_group_Password));
        
         if(!Context.getInstance().isGroupHost())  // client is a part of the remote group but not the host
         {
@@ -154,7 +197,6 @@ public class GroupCollaborationPageController implements Initializable, Controll
             @Override
             public void handle(KeyEvent event) {
                 if (keyCombinationCtrlS.match(event)) {
-                    System.out.println("CTRL + S Pressed");
                     SaveFile();
                 }
                 else if (event.getCode().equals(KeyCode.ESCAPE)){
@@ -192,8 +234,6 @@ public class GroupCollaborationPageController implements Initializable, Controll
         // for a client in the group this list consists only of the host socket,
         // while for the host this list consists of all other clients
         this.clientSockets.put(sock, ostr);
-        System.out.println("Setting Socket list : ");
-        System.out.println(clientSockets);
     }
     
     public void removeFromSocketList(Socket sock){
@@ -206,9 +246,7 @@ public class GroupCollaborationPageController implements Initializable, Controll
     }
     
     public void stopMeeting(){
-        System.out.println("rgc stop");
         rgc.stop();
-        System.out.println(Context.getInstance().getLastStatus());
         Context.getInstance().UpdateStatusBar(Context.getInstance().getLastStatus(), false);
         
     }
@@ -231,7 +269,6 @@ public class GroupCollaborationPageController implements Initializable, Controll
                         .onAction(new EventHandler<ActionEvent>() {
                             @Override
                             public void handle(ActionEvent event) {
-                                System.out.println("Notification Clicked");
                             }
                         });
                 notificationbuilder.darkStyle();
@@ -272,8 +309,6 @@ public class GroupCollaborationPageController implements Initializable, Controll
     
     public void SetCaretPosition(int row, int col){
         String text = this.file_editor.getText();
-        System.out.println(row);
-        System.out.println(col);
         int counter = 0;
         int rowCounter = 0;
         int colCounter = 0;
@@ -292,28 +327,41 @@ public class GroupCollaborationPageController implements Initializable, Controll
     }
     
     public void AddChar(String content, String position){
-        //String row = position[0];
-        //String col = position[1];
-        //this.SetCaretPosition(Integer.parseInt(row), Integer.parseInt(col));
-        this.file_editor.positionCaret(Integer.parseInt(position));
+        int pos = Integer.parseInt(position);
+        // save the caret's current position
+        this.currentPosition = this.file_editor.getCaretPosition();
+        // add the content
+        System.out.println("Here adding char at position: " + pos);
+        this.file_editor.positionCaret(pos);
         this.file_editor.insertText(this.file_editor.getCaretPosition(), content);
-        //todo - check how to invalidate
+        // return caret to the position it was before
+        if(pos < currentPosition)
+            currentPosition = content.length() + currentPosition;
+        this.file_editor.positionCaret(currentPosition);
+        //todo = add comments
     }
     
     public void DelChar(String content, String position){
-        //String row = position[0];
-        //String col = position[1];
+        System.out.println("Del Char... ");
+        System.out.println("Position is: " + position);
         int pos = Integer.parseInt(position);
-        this.file_editor.positionCaret(pos);
-        //this.SetCaretPosition(Integer.parseInt(row), Integer.parseInt(col));
-        System.out.println("About to delete");
-        //System.out.println(String.format("%s, %s",row,col));
-        System.out.println(this.file_editor.getCaretPosition());
-        //pos = this.jTextArea1.getCaretPosition();
-        try{
-            this.file_editor.replaceText(pos,pos+1,"");
-        }
-        catch(Exception ex){
+        // save the caret's current position
+        this.currentPosition = this.file_editor.getCaretPosition();
+        try {
+            // delete the content
+            this.file_editor.positionCaret(pos);
+            //if backspace
+            if(content.equals("B"))
+                this.file_editor.replaceText(pos-1, pos, "");
+            //if delete
+            else if (content.equals("D"))
+                this.file_editor.replaceText(pos, pos+1, "");
+            // return caret to the position it was before
+            if (pos < currentPosition) {
+                currentPosition = currentPosition - 1;  // todo - currentPosition - content.length()
+            }
+            this.file_editor.positionCaret(currentPosition);
+        } catch (Exception ex) {
             ex.printStackTrace();
         }
         finally{
@@ -340,73 +388,339 @@ public class GroupCollaborationPageController implements Initializable, Controll
     
     @FXML
     public void keyTyped(KeyEvent e) {
-        if (e.getSource() == this.file_editor && e.getCode() != KeyCode.UNDEFINED) {
-            try {
-                int caretPos = this.file_editor.getCaretPosition();
-                int rowNum = 0;
-                int colNum = 0;
-                String text = this.file_editor.getText();
-                int counter = 0;
-                while(counter != caretPos) {
-                    Character ch = text.charAt(counter);
-                    if (ch.equals('\n')) {
-                        rowNum++;
-                        colNum = 0;
-                    }
-                    else
-                        colNum++;
-                    counter++;
-                }
-                String position = String.format("Row: %s, Col: %s",rowNum,colNum);
-                System.out.println(position);
-                
-                String operation = "ins";
-                position = "";
-                
-                
-                String str = e.getCharacter();
-                
-                if(str.equals("\n"))
-                    str = " ";
-                
-                int p= this.file_editor.getCaretPosition();
-                System.out.println("Here handling keycodes: ");
-                System.out.println(e);
-                System.out.println(e.getCode().getName());
-                //System.out.println(e.getText());
-                System.out.println(KeyCode.BACK_SPACE.getName());
-                System.out.println(KeyCode.DELETE.getName());
-                System.out.println("True or not? ");
-                System.out.println(KeyCode.DELETE.impl_getCode() == e.getCode().impl_getCode());
-                if(e.getCode().equals(KeyCode.BACK_SPACE))
-                {
+        System.out.println("Here in key Pressed");
+        System.out.println(e.getCode().getName());
+        System.out.println(e.getText());
+        
+        try {
+            int caretPos = this.file_editor.getCaretPosition();
+
+            String operation = "";
+            String str = "";
+
+            switch (e.getCode().getName()) {
+                case "ENTER":
+                    str = "\n";
+                    operation = "ins";
+                    break;
+                case "BACK_SPACE":
                     str = "B";
                     operation = "del";
-                    //if(p > 0)
-                      //  p--;
-                } 
-                else if(e.getCode().equals(KeyCode.DELETE))
-                {
+                    break;
+                case "DELETE":
                     str = "D";
                     operation = "del";
-                }
-                position = (new Integer(p)).toString();
-
-                //String data = operation+";"+str+";"+rowNum+";"+colNum; 
+                    break;
+                default:
+                    operation = "ins";
+                    if(e.getCode().isLetterKey())
+                    {
+                        if(e.isShiftDown()) // capital letter
+                            str = e.getCode().impl_getChar().toUpperCase();
+                        else // lowercase letter
+                            str = e.getCode().impl_getChar().toLowerCase();
+                    }
+                    else if (e.getCode().isDigitKey() && !e.isShiftDown())
+                    {
+                        str = e.getText();
+                    }
+                    else
+                    {
+                        str = getKey(e);
+                        System.out.println("Str after search in HashMap:");
+                        System.out.println(str);
+                    }
+                    /*
+                    else if(e.getCode().isDigitKey() || e.getCode().isWhitespaceKey())
+                    {
+                        str = e.getCode().impl_getChar();
+                        
+                        operation = "ins";
+                    }
+                    */
+                    break;
+            }
+            
+            if (str.equals("")) {
+                System.out.println("Not supported character");
+                e.consume();
+                this.DisplayNotification("Not Supported Character", "Please view the supported characters list.");
+            }
+            else {
+                String position = (new Integer(caretPos)).toString();
                 String data = operation + ";" + str + ";" + position;
                 System.out.println("data: " + data);
                 this.UpdateData(data, null);
-            } catch (Exception ex) {
-                Logger.getLogger(GroupCollaborationPageController.class.getName()).log(Level.SEVERE, null, ex);
             }
+        } catch (Exception ex) {
+            Logger.getLogger(GroupCollaborationPageController.class.getName()).log(Level.SEVERE, null, ex);
         }
     }
-
+    
+    @SuppressWarnings("deprecation")
+    public String getKeyChar(KeyCode k){
+        String key = "";
+        System.out.println("Here in getKeyChar");
+        System.out.println(k.impl_getCode());
+        System.out.println(KeyCode.EXCLAMATION_MARK.impl_getCode());
+        //System.out.println((char)33);
+        switch (k) {
+            case EXCLAMATION_MARK:
+                key = "!";
+                break;
+            case AT:
+                key = "@";
+                break;
+            case NUMBER_SIGN:
+                key = "#";
+                break;
+            case DOLLAR:
+                key = "$";
+                break;
+            case CIRCUMFLEX:
+                key = "^";
+                break;
+            case AMPERSAND:
+                key = "&";
+                break;
+            case ASTERISK:
+                key = "*";
+                break;
+            case LEFT_PARENTHESIS:
+                key = "(";
+                break;
+            case RIGHT_PARENTHESIS:
+                key = ")";
+                break;
+            case MINUS:
+                key = "-";
+                break;
+            case UNDERSCORE:
+                key = "_";
+                break;
+            case EQUALS:
+                key = "=";
+                break;
+            case PLUS:
+                key = "+";
+                break;
+            default:
+                break;
+        }
+        return key;
+    }
+    
+    @SuppressWarnings("deprecation")
+    public String getKey(KeyEvent e){
+        for(KeyCombination k : this.keys.keySet()){
+            if(k.match(e))
+                return this.keys.get(k);
+        }
+        return "Not Found";
+    }
+    
+    public void createKeyCombinations(){
+        // if key value is equal to "" that means the key 
+        // will be accepted by the editor but will not be sent
+        
+        // add a few key combinations to make the user experience better
+        KeyCombination k;
+        // SHIFT + 1 = !
+        k = new KeyCodeCombination(KeyCode.DIGIT1, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "!");
+        // SHIFT + 2 = @
+        k = new KeyCodeCombination(KeyCode.DIGIT2, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "@");
+        // SHIFT + 3 = #
+        k = new KeyCodeCombination(KeyCode.DIGIT3, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "#");
+        // SHIFT + 4 = $
+        k = new KeyCodeCombination(KeyCode.DIGIT4, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "$");
+        // SHIFT + 5 = %
+        k = new KeyCodeCombination(KeyCode.DIGIT5, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "%");
+        // SHIFT + 6 = ^
+        k = new KeyCodeCombination(KeyCode.DIGIT6, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "^");
+        // SHIFT + 7 = &
+        k = new KeyCodeCombination(KeyCode.DIGIT7, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "&");
+        // SHIFT + 8 = *
+        k = new KeyCodeCombination(KeyCode.DIGIT8, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "*");
+        // SHIFT + 9 = (
+        k = new KeyCodeCombination(KeyCode.DIGIT9, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "(");
+        // SHIFT + 0 = )
+        k = new KeyCodeCombination(KeyCode.DIGIT0, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, ")");
+        // SHIFT + '-' = '_'
+        k = new KeyCodeCombination(KeyCode.MINUS, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "_");
+        // SHIFT + '=' = '+'
+        k = new KeyCodeCombination(KeyCode.EQUALS, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "+");
+        // SHIFT + '\' = '|'
+        k = new KeyCodeCombination(KeyCode.BACK_SLASH, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "|");
+        // SHIFT + ']' = '}'
+        k = new KeyCodeCombination(KeyCode.CLOSE_BRACKET, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "}");
+        // SHIFT + '[' = '{'
+        k = new KeyCodeCombination(KeyCode.OPEN_BRACKET, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "{");
+        // SHIFT + ',' = '<'
+        k = new KeyCodeCombination(KeyCode.COMMA, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "<");
+        // SHIFT + '.' = '>'
+        k = new KeyCodeCombination(KeyCode.PERIOD, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, ">");
+        // SHIFT + '/' = '?'
+        k = new KeyCodeCombination(KeyCode.SLASH, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "?");
+        // SHIFT + ';' = ':'
+        k = new KeyCodeCombination(KeyCode.SEMICOLON, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, ":");
+        // SHIFT + ' = "
+        k = new KeyCodeCombination(KeyCode.QUOTE, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, String.format("%c",'"'));
+        // SHIFT + '`' = '~'
+        k = new KeyCodeCombination(KeyCode.BACK_QUOTE, KeyCombination.SHIFT_DOWN);
+        this.keys.put(k, "~");
+        
+        // Other non-shift related keys
+        k = new KeyCodeCombination(KeyCode.MINUS);
+        this.keys.put(k, "-");
+        k = new KeyCodeCombination(KeyCode.EQUALS);
+        this.keys.put(k, "=");
+        k = new KeyCodeCombination(KeyCode.BACK_SLASH);
+        this.keys.put(k, "\\");
+        k = new KeyCodeCombination(KeyCode.CLOSE_BRACKET);
+        this.keys.put(k, "]");
+        k = new KeyCodeCombination(KeyCode.OPEN_BRACKET);
+        this.keys.put(k, "[");
+        k = new KeyCodeCombination(KeyCode.COMMA);
+        this.keys.put(k, ",");
+        k = new KeyCodeCombination(KeyCode.PERIOD);
+        this.keys.put(k, ".");
+        k = new KeyCodeCombination(KeyCode.SLASH);
+        this.keys.put(k, "/");
+        k = new KeyCodeCombination(KeyCode.COLON);
+        this.keys.put(k, ":");
+        k = new KeyCodeCombination(KeyCode.SEMICOLON);
+        this.keys.put(k, ";");
+        k = new KeyCodeCombination(KeyCode.QUOTE);
+        this.keys.put(k, "'");
+        k = new KeyCodeCombination(KeyCode.BACK_QUOTE);
+        this.keys.put(k, "`");
+        k = new KeyCodeCombination(KeyCode.HOME);
+        this.keys.put(k, "");
+        k = new KeyCodeCombination(KeyCode.END);
+        this.keys.put(k, "");
+        k = new KeyCodeCombination(KeyCode.SPACE);
+        this.keys.put(k, " ");
+        k = new KeyCodeCombination(KeyCode.TAB);
+        this.keys.put(k, "  ");
+        
+        // Numpad options
+        k = new KeyCodeCombination(KeyCode.ASTERISK);
+        this.keys.put(k, "*");
+        k = new KeyCodeCombination(KeyCode.MULTIPLY);
+        this.keys.put(k, "*");
+        k = new KeyCodeCombination(KeyCode.DIVIDE);
+        this.keys.put(k, "/");
+        k = new KeyCodeCombination(KeyCode.ADD);
+        this.keys.put(k, "+");
+        k = new KeyCodeCombination(KeyCode.SUBTRACT);
+        this.keys.put(k, "-");
+        k = new KeyCodeCombination(KeyCode.DECIMAL);
+        this.keys.put(k, ".");
+    }
+    
     @FXML
     public void keyPressed(KeyEvent e) {
-        System.out.println("KEY PRESSED");
-        System.out.println(e.getCode().impl_getCode());
-         if (e.getSource() == this.file_editor) {
+        
+        System.out.println("Here in key Pressed");
+        System.out.println(e.getCode());
+        System.out.println(e.getText());
+        
+        try {
+            int caretPos = this.file_editor.getCaretPosition();
+
+            String operation = "";
+            String str = "";
+
+            switch (e.getCode()) {
+                case ENTER:
+                    str = "\n";
+                    operation = "ins";
+                    break;
+                case BACK_SPACE:
+                    str = "B";
+                    operation = "del";
+                    break;
+                case DELETE:
+                    str = "D";
+                    operation = "del";
+                    break;
+                default:
+                    operation = "ins";
+                    if(e.getCode().isLetterKey())
+                    {
+                        if(e.isShiftDown()) // capital letter
+                            str = e.getCode().impl_getChar().toUpperCase();
+                        else // lowercase letter
+                            str = e.getCode().impl_getChar().toLowerCase();
+                    }
+                    else if (e.getCode().isDigitKey() && !e.isShiftDown())
+                    {
+                        str = e.getText();
+                    }
+                    else
+                    {
+                        str = getKey(e);
+                        System.out.println("Str after search in HashMap:");
+                        System.out.println(str);
+                    }
+                    /*
+                    else if(e.getCode().isDigitKey() || e.getCode().isWhitespaceKey())
+                    {
+                        str = e.getCode().impl_getChar();
+                        
+                        operation = "ins";
+                    }
+                    */
+                    break;
+            }
+            System.out.println("Str is: ");
+            System.out.println(str);
+            if (str.equals("Not Found") && !e.getCode().equals(KeyCode.SHIFT) && !e.getCode().isArrowKey()) {
+                System.out.println("Not supported character");
+                consumeKey = true;
+                this.DisplayNotification("Not Supported Character/Action", "Please view the supported characters and action list.");
+            }
+            else if (str.equals("") || str.equals("Not Found")){
+                // do not send empty operations (SHIFT for example)
+            }
+            else {
+                String position = (new Integer(caretPos)).toString();
+                String data = operation + ";" + str + ";" + position;
+                System.out.println("data: " + data);
+                this.UpdateData(data, null);
+            }
+        } catch (Exception ex) {
+            Logger.getLogger(GroupCollaborationPageController.class.getName()).log(Level.SEVERE, null, ex);
+        }
+        /*
+        System.out.println("Key Pressed");
+        System.out.println(e.getCode());
+        System.out.println(e.getText());
+        System.out.println(e.getCode().impl_getChar());
+        System.out.println(e.getCode().impl_getChar().equals("A"));
+        System.out.println(e.getCode().equals(KeyCode.ENTER));
+        if (e.getSource() == this.file_editor) {
+            System.out.println("פצצה");
             try {
                 int caretPos = this.file_editor.getCaretPosition();
                 int rowNum = 0;
@@ -423,23 +737,15 @@ public class GroupCollaborationPageController implements Initializable, Controll
                         colNum++;
                     counter++;
                 }
-                String position = String.format("Row: %s, Col: %s",rowNum,colNum);
-                System.out.println(position);
                 
                 String operation = "ins";
-                position = "";
-                
-                
+                String position = "";
                 String str = e.getCharacter();
                 
                 if(str.equals("\n"))
                     str = " ";
                 
                 int p= this.file_editor.getCaretPosition();
-                System.out.println(e.getCode());
-                System.out.println(e.getText());
-                System.out.println(KeyCode.BACK_SPACE.getName());
-                System.out.println(KeyCode.DELETE.getName());
                 if(e.getCode().equals(KeyCode.BACK_SPACE))
                 {
                     str = "B";
@@ -454,21 +760,22 @@ public class GroupCollaborationPageController implements Initializable, Controll
                 }
                 position = (new Integer(p)).toString();
 
-                //String data = operation+";"+str+";"+rowNum+";"+colNum; 
+                //String data = operation+";"+str+";"+position; 
                 String data = operation + ";" + str + ";" + position;
                 System.out.println("data: " + data);
                 this.UpdateData(data, null);
             } catch (Exception ex) {
                 Logger.getLogger(GroupCollaborationPageController.class.getName()).log(Level.SEVERE, null, ex);
             }
-        }
+        }*/
     }
     
     @FXML
     public void keyReleased(KeyEvent e) {
-        System.out.println("KEY Released");
-        System.out.println(e.getCode().impl_getCode());
-         if (e.getSource() == this.file_editor && (e.getCode() == KeyCode.DELETE || e.getCode() == KeyCode.BACK_SPACE)) {
+        System.out.println("key released");
+        System.out.println(e.getCode());
+         if (e.getSource() == this.file_editor){ // && (e.getCode() == KeyCode.DELETE || e.getCode() == KeyCode.BACK_SPACE)) {
+            System.out.println("פצצה");
             try {
                 int caretPos = this.file_editor.getCaretPosition();
                 int rowNum = 0;
@@ -485,23 +792,15 @@ public class GroupCollaborationPageController implements Initializable, Controll
                         colNum++;
                     counter++;
                 }
-                String position = String.format("Row: %s, Col: %s",rowNum,colNum);
-                System.out.println(position);
-                
+				
                 String operation = "ins";
-                position = "";
-                
-                
+                String position = "";
                 String str = e.getCharacter();
                 
                 if(str.equals("\n"))
                     str = " ";
                 
                 int p= this.file_editor.getCaretPosition();
-                System.out.println(e.getCode());
-                System.out.println(e.getText());
-                System.out.println(KeyCode.BACK_SPACE.getName());
-                System.out.println(KeyCode.DELETE.getName());
                 if(e.getCode().equals(KeyCode.BACK_SPACE))
                 {
                     str = "B";
@@ -516,7 +815,7 @@ public class GroupCollaborationPageController implements Initializable, Controll
                 }
                 position = (new Integer(p)).toString();
 
-                //String data = operation+";"+str+";"+rowNum+";"+colNum; 
+                //String data = operation+";"+str+";"+position; 
                 String data = operation + ";" + str + ";" + position;
                 System.out.println("data: " + data);
                 this.UpdateData(data, null);
@@ -580,7 +879,6 @@ public class GroupCollaborationPageController implements Initializable, Controll
                 fileWriter.close();
                 this.DisplayNotification("File Saved", "Text saved successfully to " + file.getName());
             } catch (IOException ex) {
-                System.err.println(ex.getMessage());
                 this.DisplayNotification("Save Error", ex.getMessage());
             }
         }
@@ -589,8 +887,17 @@ public class GroupCollaborationPageController implements Initializable, Controll
         }
     }    
     
-    public void copyToClipboard(){
-        // todo
+    public void copyToClipboard() {
+        // copy the current text to the clipboard
+        try {
+            String content = this.GetText().replaceAll("\n", System.getProperty("line.separator"));
+            StringSelection selection = new StringSelection(content);
+            Clipboard clipboard = Toolkit.getDefaultToolkit().getSystemClipboard();
+            clipboard.setContents(selection, selection);
+            this.DisplayNotification("Copy", "Copied text to clipboard.");
+        } catch (Exception ex) {
+            this.DisplayNotification("Copy Error", "Couldn't copy text to clipboard");
+        }
     }
     
     public void exitGroup() {
@@ -639,17 +946,14 @@ public class GroupCollaborationPageController implements Initializable, Controll
             @Override
             public void handle(ActionEvent event) {
                 dialog.close();
-                System.out.println("Canceled. Returning back to group meeting.");
             }
         });
         cancel_btn.setOnAction(new EventHandler<ActionEvent>() {
             @Override
             public void handle(ActionEvent event) {
                 dialog.close();
-                System.out.println("Canceled. Returning back to group meeting.");
             }
         });
         dialog.show();
     }
-
 }

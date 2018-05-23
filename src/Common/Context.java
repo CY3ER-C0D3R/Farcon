@@ -1,8 +1,18 @@
 /*
- * To change this license header, choose License Headers in Project Properties.
- * To change this template file, choose Tools | Templates
- * and open the template in the editor.
+ * Farcon Software
+ *
+ * This program is a Group Collaboration and
+ * Remote Control Software, free of charge,
+ * for personal or commercial use.
+ *
+ * Open source, code written in javafx.
+ * Written by: Yuval Stein @CY3ER-C0D3R
+ *
+ * https://github.com/CY3ER-C0D3R/Farcon
+ *
+ * 2018 (c) Farcon
  */
+
 package Common;
 
 import Main.FXMLDocumentController;
@@ -281,25 +291,22 @@ public class Context {
                         .title(title)
                         .text(text)
                         .graphic(imgview)
-                        .hideAfter(Duration.seconds(5))
+                        .hideAfter(Duration.seconds(3))
                         .position(Pos.BOTTOM_RIGHT)
                         .onAction(new EventHandler<ActionEvent>() {
                             @Override
                             public void handle(ActionEvent event) {
-                                System.out.println("Notification Clicked");
+                             
                             }
                         });
                 notificationbuilder.darkStyle();
                 notificationbuilder.show();
-                
-                //Notifications.create().title("Test").text("working? or not working?").position(Pos.BOTTOM_RIGHT).show();
             }
         });
     }
     
     public void UpdateProfilePicture(){
         // function updates the profile picture on all the pages
-        System.out.println("Updating profile picture");
         if(f != null)
             f.SetProfilePicture(this.isSignedIn());
         if(g != null)
@@ -332,7 +339,6 @@ public class Context {
         {
             //update connection succeeded status  
             this.SetStatusBar("Ready to connect (unsecure connection)", "-fx-fill: #1bb21b");  // green status circle
-            System.out.println("NOW NOW NOW NOW NOW NOW NOW NOW NOW NOW NOW NOW HEREEEE");
             this.connectedToMasterServer = true;
         }
         else if (connectionStatus.equals("remote-control-only") || connectionStatus.equals("Authenticating...") || connectionStatus.equals("Awaiting Authentication...") || connectionStatus.equals("Connecting to Remote Host...") || connectionStatus.equals("Connecting to remote Group server...")) 
@@ -350,13 +356,9 @@ public class Context {
         else //error in connecting to Master Server
         {
             //update connection failed status
-            System.out.println(connectionStatus);
             this.SetStatusBar(connectionStatus, "-fx-fill: #e60000");  // red status circle
             this.connectedToMasterServer = false;
         }
-        
-        System.out.println("Here in context, after UpdateStatusBar called");
-        System.out.println(this.connectedToMasterServer);
         
         UpdateAllStatusBars();
         
@@ -394,74 +396,6 @@ public class Context {
         if(OnlineChatController != null)
             OnlineChatController.updateStatusBar();
     }
-    
-    
-//    public void updateStatusBar(Label status_label, Circle status_circle, String connectionStatus, boolean returnBack){
-//        // if returnBack is true, status bar will go back to normal after 5 seconds
-//        
-//        if(connectionStatus.equals("unsecure-connection") || connectionStatus.equals("secure-connection") || connectionStatus.equals("Connected"))
-//        {
-//            //connection succeeded
-//            //System.out.println(String.format("Connected to master server (%s)",connectionStatus));
-//            
-//            //create a thread that listens to data from master server
-//            Master_Server_Handler masterServerConn = new Master_Server_Handler(this.input, this.output, this.clientsock);
-//            masterServerConn.start();
-//                    
-//            //update status
-//            status_circle.setStyle("-fx-fill: #1bb21b"); //red
-//            status_label.setText("Ready to connect (unsecure connection)");
-//            this.connectedToMasterServer = true;
-////            try {
-////                //get data from master server
-////                m.GetIDPassword(Context.getInstance().getClient());
-////            } catch (RemoteException ex) {
-////                Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
-////            }
-//        }
-//        else if (connectionStatus.equals("remote-control-only") || connectionStatus.equals("Authenticating...") || connectionStatus.equals("Awaiting Authentication...") || connectionStatus.equals("Connecting to Remote Host...")) 
-//        {
-//            //connection half succeeded
-//            //System.out.println(String.format("Connected to master server (%s)",connectionStatus));
-//            
-//            //update status
-//            status_circle.setStyle("-fx-fill: #FF7900"); //orange
-//            if(connectionStatus.equals("remote-control-only")) // error in creating the local server, client can only remote-control others
-//                status_label.setText("Remote Control Only (Incoming Connections are unavailable)");
-//            else // other reasons for orange label
-//                status_label.setText(connectionStatus);
-//        }
-//        else //error in connecting to Master Server
-//        {
-//            //connection failed
-//            //System.out.println("Connected to master server failed");
-//            
-//            status_circle.setStyle("-fx-fill: #e60000"); //red
-//            status_label.setText(connectionStatus);
-//            this.connectedToMasterServer = false;
-//        }
-//        
-//        Context.getInstance().setConnectedToMasterServer(connectedToMasterServer);
-//        
-//        if(returnBack && !this.lastStatus.equals("")){
-//            // after 5 seconds return status to the last status (depending on lastStatus)
-//            timer = new Timer();
-//            timer.schedule(new UpdateStatus(), 5*1000);
-//        }
-//    }
-//    
-//    class UpdateStatus extends TimerTask {
-//        @Override 
-//        public void run() {
-//            Platform.runLater(new Runnable() {
-//                @Override
-//                public void run() {
-//                    updateStatusBar(lastStatus, false);
-//                    timer.cancel(); //Terminate the timer thread
-//                }
-//            });
-//        }
-//    }
     
     // ------------------------------------------------------------------ //
 }
