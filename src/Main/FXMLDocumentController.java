@@ -199,14 +199,23 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
     
     public void setLocalServerStatus(boolean status){
         this.LocalServerIsOpen = status; // true or false
+        this.server.setLocalServerIsOpen(LocalServerIsOpen);
     }
     
     public void updatePage(){
         // function updates the page
-        this.id_field.setText(this.my_id);
+        this.username = Context.getInstance().getUsername();
+        my_id = Context.getInstance().getId();
+        my_rc_password = Context.getInstance().getRc_password();
+        this.id_field.setText(my_id);
         this.password_field.setText(this.my_rc_password);
-        //todo - add username
-        //todo - update connected_users list and combobox
+        // stop the "old" local server and start a new one with correct data
+        this.LocalServerIsOpen = false;
+        this.server.setLocalServerIsOpen(LocalServerIsOpen);
+        this.server.StopLocalServer();
+        //open new thread for local remote control server connections and wait for server status response
+        server = new LocalServer(username, my_rc_password, my_id, true);
+        
     }
     
     public void updateConnectedUsers(String connected_users){
@@ -216,13 +225,17 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
                             false);
         System.out.println("Here in client, got this users list: ");
         System.out.println(connected_users);
+        System.out.println(username);
+        System.out.println(my_id);
+        String formattedUsername = String.format("%s (%s)", username, my_id);
+        System.out.println("FormattedUsername = " + formattedUsername);
         // if only one token, that means no other users are connected
         if (StrTok.countTokens() == 1) {
             this.id_combobox.getItems().add("No Connected Users.");
         } else {
             while (StrTok.hasMoreTokens()) {
                 String id = StrTok.nextToken();
-                if (!id.equals(this.my_id)) {
+                if (!id.equals(this.my_id) && !id.equals(formattedUsername)) {
                     this.connected_users.add(id);
                     System.out.println(this.connected_users);
                     this.id_combobox.getItems().add(id);
@@ -299,6 +312,8 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
         if (!this.id_combobox.getSelectionModel().isEmpty()) {
             remote_id = this.id_combobox.getSelectionModel().getSelectedItem();
         }
+        else
+            remote_id = this.id_combobox.getEditor().getText(); // read the text written to the combobox
         if (remote_id.equals(my_id)) {
             remote_id = "Me";
         }
@@ -319,6 +334,9 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
             if (Pattern.matches(".*[a-zA-Z].*", remote_id)) {
                 remote_Username = remote_id;
                 remote_id = "";
+                System.out.println("Remote Username entered: " + remote_Username);
+                StringTokenizer inStrTok = new StringTokenizer(remote_Username, " ", false);
+                remote_Username = inStrTok.nextToken();
                 System.out.println("Remote Username entered: " + remote_Username);
             }
             if (!remote_id.equals("") || !remote_Username.equals("")) {
@@ -620,8 +638,8 @@ public class FXMLDocumentController implements Initializable, ControlledScreen {
                 return;
             }
 
-            //open new thread for local server connections and wait for server status response
-            server = new LocalServer(singleton, username, my_rc_password, my_id);
+            //open new thread for local remote control server connections and wait for server status response
+            server = new LocalServer(username, my_rc_password, my_id, true);
 //            Thread thread = new Thread(new Runnable() {
 //                @Override
 //                public void run() {

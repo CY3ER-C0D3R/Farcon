@@ -37,6 +37,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.ObjectOutputStream;
 import java.io.OutputStream;
+import java.io.OutputStreamWriter;
 import java.net.Socket;
 import java.net.URL;
 import java.util.HashMap;
@@ -114,9 +115,12 @@ public class GroupCollaborationPageController implements Initializable, Controll
         Context.getInstance().setGc(this);
         g = Context.getInstance().getG();
         clientID = Context.getInstance().getF().getID();
-        // If an unsupported key was typed consume the event,
-        // meaning do not allow the key to be typed in the editor.
-        consumeKey = false; 
+        
+        RemoteConnectionData r = Context.getInstance().getRemote_group_data();
+        if(r != null)
+            this.SetRemoteData(Context.getInstance().getRemote_group_data());
+        
+        file_editor.setFocusTraversable(true);
         
         this.file_editor.addEventFilter(KeyEvent.KEY_PRESSED, new EventHandler<KeyEvent>() {
             @Override
@@ -145,11 +149,7 @@ public class GroupCollaborationPageController implements Initializable, Controll
         this.keys = new HashMap<>();
         createKeyCombinations();
 
-        this.clientSockets = new HashMap<>();
-        
-        RemoteConnectionData r = Context.getInstance().getRemote_group_data();
-        if(r != null)
-            this.SetRemoteData(Context.getInstance().getRemote_group_data());
+        //initializeMeeting();
         
         try {
             VBox box = FXMLLoader.load(getClass().getResource("/View/GroupCollaborationPageDrawer.fxml"));
@@ -158,34 +158,6 @@ public class GroupCollaborationPageController implements Initializable, Controll
         } catch (IOException ex) {
             Logger.getLogger(GroupCollaborationPageController.class.getName()).log(Level.SEVERE, null, ex);
         }
-        
-        this.LocalGroupServerIsOpen = false;  //becomes true only after registered in Master Server
-        if(Context.getInstance().isGroupHost())
-        {
-            // open file dialog to choose the profile photo
-            FileChooser fc = new FileChooser();
-            fc.getExtensionFilters().addAll(
-                    new ExtensionFilter("Text Files", "*.txt")
-            );
-            File selectedFile = fc.showOpenDialog(null);
-            if (selectedFile != null) {
-                Context.getInstance().setSelectedFileName(selectedFile.getAbsolutePath());
-            }
-            server = new LocalGroupServer(remote_group_ID, remote_group_Password);
-        }
-         
-        r = Context.getInstance().getRemote_group_data();
-        if(r != null)
-            this.SetRemoteData(Context.getInstance().getRemote_group_data());
-        
-        System.out.println("Starting the collaboration server...");
-        System.out.println(String.format("My GID and Password are: %s, %s ", this.remote_group_ID, this.remote_group_Password));
-       
-        if(!Context.getInstance().isGroupHost())  // client is a part of the remote group but not the host
-        {
-            rgc = new RemoteGroupClient(this.clientName, this.clientID, this, this.remote_group_ID, this.remote_group_Password, this.remote_group_ip, this.remote_group_port);
-        }
-        file_editor.setFocusTraversable(true);
         
         // add listener to file editor for ctrl+s to save the file
         final KeyCombination keyCombinationCtrlS = new KeyCodeCombination(
@@ -207,7 +179,41 @@ public class GroupCollaborationPageController implements Initializable, Controll
                 }
             }
         });
-
+    }
+    
+    public void initializeMeeting(){
+        // If an unsupported key was typed consume the event,
+        // meaning do not allow the key to be typed in the editor.
+        consumeKey = false; 
+        this.clientSockets = new HashMap<>();
+         
+        this.LocalGroupServerIsOpen = false;  //becomes true only after registered in Master Server
+        if(Context.getInstance().isGroupHost())
+        {
+            // open file dialog to choose the profile photo
+            FileChooser fc = new FileChooser();
+            fc.getExtensionFilters().addAll(
+                    new ExtensionFilter("Text Files", "*.txt")
+            );
+            File selectedFile = fc.showOpenDialog(null);
+            if (selectedFile != null) {
+                Context.getInstance().setSelectedFileName(selectedFile.getAbsolutePath());
+                server = new LocalGroupServer(remote_group_ID, remote_group_Password);
+            }
+            else  // no file seleted, cancel the meeting
+            {
+                Context.getInstance().updateMeetingEnded();
+                myController.setScreen(main.GroupMeetingID);
+            }
+        }
+        
+        System.out.println("Starting the collaboration server...");
+        System.out.println(String.format("My GID and Password are: %s, %s ", this.remote_group_ID, this.remote_group_Password));
+       
+        if(!Context.getInstance().isGroupHost())  // client is a part of the remote group but not the host
+        {
+            rgc = new RemoteGroupClient(this.clientName, this.clientID, this, this.remote_group_ID, this.remote_group_Password, this.remote_group_ip, this.remote_group_port);
+        }
     }
     
     public void SendMessage(JSONObject jsonObject){
@@ -378,6 +384,22 @@ public class GroupCollaborationPageController implements Initializable, Controll
                     OutputStream ostr = this.clientSockets.get(s);
                     ostr.write(content.length());
                     ostr.write(content.getBytes());
+                    ostr.flush();
+                }
+            } catch (IOException ex) {
+                Logger.getLogger(RemoteGroupClient.class.getName()).log(Level.SEVERE, null, ex);
+            }
+        }
+    }
+    
+    //todo - change parsing way to json instead of token...(=,;)
+    public void UpdateData(JSONObject jsonObject, Socket sender) {
+        for (Socket s: this.clientSockets.keySet()) {
+            try {
+                if(s != null && s != sender) {
+                    OutputStreamWriter ostr = new OutputStreamWriter(this.clientSockets.get(s), "UTF-8");
+                    //ostr.write(jsonObject.toString() + "\n".length());
+                    ostr.write(jsonObject.toString() + "\n");
                     ostr.flush();
                 }
             } catch (IOException ex) {
@@ -939,6 +961,7 @@ public class GroupCollaborationPageController implements Initializable, Controll
                 else  // client in chat, close connection
                     stopMeeting();
                 dialog.close();
+                Context.getInstance().updateMeetingEnded();
                 myController.setScreen(main.GroupMeetingID);
             }
         });

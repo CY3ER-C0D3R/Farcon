@@ -23,6 +23,7 @@ import SignUpPage.SignUp_FormController;
 import Main.main;
 import Main.FXMLDocumentController;
 import Common.Context;
+import RemoteControlPage.LocalServer;
 import com.jfoenix.controls.JFXButton;
 import com.jfoenix.controls.JFXDialog;
 import com.jfoenix.controls.JFXDialogLayout;
@@ -84,6 +85,8 @@ public class GroupMeetingPageController implements Initializable, ControlledScre
     private BufferedReader input;
     
     public LocalGroupServer server;
+    public LocalServer presentationServer;
+    public boolean LocalPresentationServerIsOpen = false; //becomes true only after registered in Master Server
     
     private String my_gid;
     private String my_group_password;
@@ -291,8 +294,6 @@ public class GroupMeetingPageController implements Initializable, ControlledScre
     
     @FXML
     private void startGroupMeeting(ActionEvent event){
-        // todo - change text to 'cancel' and allow user to cancel a meeting 
-        // that started
         this.start_meeting_btn.setDisable(true);
         String type;
         if(this.collaboration_radio_btn.isSelected())
@@ -301,10 +302,11 @@ public class GroupMeetingPageController implements Initializable, ControlledScre
             type = "presentation";
         if(Context.getInstance().isConnectedToMasterServer())
         {
-            //this.server = new LocalGroupServer(my_gid, my_group_password, type);
-            // change to collaboration page
             Context.getInstance().setGroupHost(true);  // client will be the host of the group meeting
-            startCollaborationMeeting();
+            if(type.equals("collaboration")) // change to collaboration page
+                startCollaborationMeeting();
+            else // start a presentation meeting
+                startPresentationMeeting();
         }
         else
         {
@@ -312,10 +314,31 @@ public class GroupMeetingPageController implements Initializable, ControlledScre
             this.start_meeting_btn.setDisable(false);
         }
     }
+    
+    public void startPresentationMeeting(){
+        //open new thread for local remote control server connections and wait for server status response
+        presentationServer = new LocalServer(Context.getInstance().getUsername(), my_group_password, my_gid, false);
+    }
+    
+    public void setLocalPresentationServerIsOpen(boolean status){
+        this.LocalPresentationServerIsOpen = status; // true or false
+        this.presentationServer.setLocalServerIsOpen(LocalPresentationServerIsOpen);
+        if(!LocalPresentationServerIsOpen)
+        {
+            System.out.println("So far so good");
+            this.start_meeting_btn.setDisable(false);
+        }
+    }
+    
+    public void enableStartMeetingBtn(){
+        this.start_meeting_btn.setDisable(false);
+    }
      
     public void startCollaborationMeeting(){
         main.mainContainer.loadScreen(main.GroupCollaborationID, main.GroupCollaborationPageFile);
         myController.setScreen(main.GroupCollaborationID);
+        // initialize the page and give user option to choose the file
+        Context.getInstance().initializeCollaborationMeeting();
     }
         
     public void stopGroupMeeting(String status){
@@ -437,15 +460,20 @@ public class GroupMeetingPageController implements Initializable, ControlledScre
                 dialog.close();
                 System.out.println("Password entered: " + remote_group_password);
                 System.out.println("Authenticating...");
-                //connect to local group server on remote computer
-                System.out.println(String.format("Attempting to connect to remote group server on %s, %d", ip, port));
-                rc_group_data = new RemoteConnectionData(ip, port, remote_GID, remote_group_password, type, clientName);
-                Context.getInstance().setRemote_group_data(rc_group_data);
-                if(type.equals("collaboration")){
+
+                if (type.equals("collaboration")) {
+                    //connect to local group server on remote computer
+                    System.out.println(String.format("Attempting to connect to remote group server on %s, %d", ip, port));
+                    rc_group_data = new RemoteConnectionData(ip, port, remote_GID, remote_group_password, type, clientName);
+                    Context.getInstance().setRemote_group_data(rc_group_data);
                     startCollaborationMeeting();
-                }
-                else{
-                    //todo - presentation mode
+                } else {  // presentation mode
+                    //connect to local presentation server on remote computer
+                    System.out.println(String.format("Attempting to connect to remote presentation server on %s, %d", ip, port));
+                    rc_group_data = new RemoteConnectionData(ip, port, remote_GID, remote_group_password);
+                    Context.getInstance().setRemote_data(rc_group_data);
+                    main.mainContainer.loadScreen(main.RemotePageID, main.RemotePageFile);
+                    myController.setScreen(main.RemotePageID);
                 }
             }
         });

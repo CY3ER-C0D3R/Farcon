@@ -51,6 +51,8 @@ public class Context {
     private int connectionTimeout;
     
     private String username;
+    private String id;
+    private String rc_password;
     
     private FXMLDocumentController f;
     private GroupMeetingPageController g;
@@ -83,6 +85,22 @@ public class Context {
         return instance;
     }
 
+    public String getId() {
+        return id;
+    }
+
+    public void setId(String id) {
+        this.id = id;
+    }
+
+    public String getRc_password() {
+        return rc_password;
+    }
+
+    public void setRc_password(String rc_password) {
+        this.rc_password = rc_password;
+    }
+    
     public String getUsername() {
         return username;
     }
@@ -395,6 +413,18 @@ public class Context {
             s_u.updateStatusBar();
         if(OnlineChatController != null)
             OnlineChatController.updateStatusBar();
+    }
+    
+    public void initializeCollaborationMeeting(){
+        if(this.gc != null)
+            gc.initializeMeeting();
+    }
+    
+    public void updateMeetingEnded() {
+        System.out.println(g == null);
+        if(this.g != null)
+            g.enableStartMeetingBtn();
+        this.selectedFileName = null;
     }
     
     // ------------------------------------------------------------------ //

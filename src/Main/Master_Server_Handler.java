@@ -65,6 +65,8 @@ public class Master_Server_Handler extends Thread {
     String id;
     String rc_password;
     String status;
+    // Group inforamtaion
+    String type;
     // online chat information
     String sender_username;
     String chat_message;
@@ -280,16 +282,15 @@ public class Master_Server_Handler extends Thread {
                 this.rc_password = jsonObject.getString("Password");
                 // update signed in variable
                 Context.getInstance().setSignedIn(true);
-                // update username variable
+                // update username, id and rc_password variables
                 Context.getInstance().setUsername(username);
+                Context.getInstance().setId(id);
+                Context.getInstance().setRc_password(rc_password);
                 Platform.runLater(new Runnable() {
                      @Override
                      public void run() {
                          FileOutputStream fos = null;
                          try {
-                             f.setUsername(username);
-                             f.setID(id);
-                             f.setRC_Password(rc_password);
                              f.updatePage();
                              // change sign in button to sign out
                              System.out.println("Here in sign in, changing to sign out");
@@ -327,6 +328,17 @@ public class Master_Server_Handler extends Thread {
         } catch (JSONException ex) {
             Logger.getLogger(Master_Server_Handler.class.getName()).log(Level.SEVERE, null, ex);
         }
+        
+        // request an update for connected users (to update the username)
+        jsonObject = new JSONObject();
+        JSONObject parameters = new JSONObject();
+        try {
+            jsonObject.put("Action", "request-update-connected-users");
+            jsonObject.put("Parameters", parameters);
+        } catch (JSONException e) {
+            Logger.getLogger(Master_Server_Handler.class.getName()).log(Level.SEVERE, null, e);
+        }
+        send_message(jsonObject);
     }
     
     public void Sign_Out_Reply(JSONObject jsonObject){
@@ -494,9 +506,12 @@ public class Master_Server_Handler extends Thread {
     }
     
     public void Register_Group_Server_Reply(JSONObject jsonObject){
-        this.gc = Context.getInstance().getGc();
+        this.g = Context.getInstance().getG();  // group meeting page controller
+        this.gc = Context.getInstance().getGc(); // group collaboration page controller
+        
         try {
             status = jsonObject.getString("Status");
+            type = jsonObject.getString("Type");
         } catch (JSONException ex) {
             Logger.getLogger(FXMLDocumentController.class.getName()).log(Level.SEVERE, null, ex);
         }
@@ -505,15 +520,24 @@ public class Master_Server_Handler extends Thread {
         Platform.runLater(new Runnable() {
             @Override
             public void run() {
-                if (gc != null)
+                if (gc != null && type.equals("collaboration"))
                 {
                     Context.getInstance().UpdateStatusBar(status, false);
-                    //f.updateStatusBar(status, false);
-                    //g.updateStatusBar();
                     if(status.equals("secure-connection") || status.equals("unsecure-connection")){
-                        System.out.println("Group Server Registered. Started server module...");
+                        System.out.println("Collaboration Group Server Registered. Started server module...");
                         gc.setLocalGroupServerIsOpen(true); // open the local group server
                         gc.startMeeting(); // Start the local group server
+                    }
+                    else
+                        System.out.println("Local Group Server hasn't been Resgistered on Master Server.");
+                }
+                else if (g != null && type.equals("presentation"))
+                {
+                    Context.getInstance().UpdateStatusBar(status, false);
+                    if(status.equals("secure-connection") || status.equals("unsecure-connection")){
+                        System.out.println("Presentation Group Server Registered. Started server module...");
+                        g.setLocalPresentationServerIsOpen(true); // open the local group server
+                        g.presentationServer.StartLocalServer();// Start the local presentation group server
                     }
                     else
                         System.out.println("Local Group Server hasn't been Resgistered on Master Server.");

@@ -62,7 +62,7 @@ public class LocalServerHandler extends Thread {
     final static public int MOUSE_RIGHT_BTN  = 2;
     final static public int MOUSE_MIDDLE_BTN = 4;
     
-    private FXMLDocumentController f;
+    private boolean allowRemoteControl;  // this variable is used to distinguish between presentation mode group meeting and between a remote control session.
 
     Socket sock;
     private String server_ID;
@@ -85,11 +85,11 @@ public class LocalServerHandler extends Thread {
      * mainly for sending the image to the client every 100 milliseconds.
      * @param newSocket Socket Object for each client
      */
-    public LocalServerHandler(FXMLDocumentController f, Socket newSocket, String server_ID, String server_RC_Password) {
-        this.f = f;
+    public LocalServerHandler(Socket newSocket, String server_ID, String server_RC_Password, boolean allowRemoteControl) {
         sock = newSocket;
         this.server_ID = server_ID;
         this.server_RC_Password = server_RC_Password;
+        this.allowRemoteControl = allowRemoteControl;
         computerIsOn = true;
         clientVertified = false;
         try {
@@ -147,6 +147,14 @@ public class LocalServerHandler extends Thread {
             System.err.println(ex.getMessage());
         }
     }
+    
+    public void setServerID(String id){
+        this.server_ID = id;
+    }
+    
+    public void setServerRCPassword(String password){
+        this.server_RC_Password = password;
+    }
 
     public void VertifyClient(){
         // client connecting must send a first string of "ID=...;RC_Password="
@@ -197,62 +205,96 @@ public class LocalServerHandler extends Thread {
      * performs the actual communication with the client socket.
      */
     public void run() {
-        Object msg;
-        String inMsg = "";
-        do {
-            try {
-                msg = istr.readObject();
-                if (msg instanceof String) {
-                    inMsg = (String) msg;
-                    System.out.println("Message Recieved: " + inMsg);
-                    StringTokenizer inStrTok = new StringTokenizer(inMsg, ";",
-                            false);
-                    String msgCode = inStrTok.nextToken();
-                    if (msgCode.startsWith("Name=")) {
-                        this.clientName = msgCode.split("=")[1];
-                    } else if (msgCode.equals("Event=Mouse")) {
-                        HandleMouse(inStrTok);
-                        //ostr.writeObject("Event=ok"); //todo
-                    } else if (msgCode.equals("Event=Key")){
-                        HandleKey(inStrTok);
-                    } else if (msgCode.equals("BufferImage")) {
-                        /*ostr.writeObject("Event=sendingImg");
+        if (allowRemoteControl) {
+            Object msg;
+            String inMsg = "";
+            do {
+                try {
+                    msg = istr.readObject();
+                    if (msg instanceof String) {
+                        inMsg = (String) msg;
+                        System.out.println("Message Recieved: " + inMsg);
+                        StringTokenizer inStrTok = new StringTokenizer(inMsg, ";",
+                                false);
+                        String msgCode = inStrTok.nextToken();
+                        if (msgCode.startsWith("Name=")) {
+                            this.clientName = msgCode.split("=")[1];
+                        } else if (msgCode.equals("Event=Mouse")) {
+                            HandleMouse(inStrTok);
+                            //ostr.writeObject("Event=ok"); //todo
+                        } else if (msgCode.equals("Event=Key")) {
+                            HandleKey(inStrTok);
+                        } else if (msgCode.equals("BufferImage")) {
+                            /*ostr.writeObject("Event=sendingImg");
                     ostr.writeObject(Capture());
                     ostr.writeObject("Event=ok"); //todo*/
-                    } else if(msgCode.equals("Shutdown")){
-                        ShutDownComputer();
-                    }
-                } else { //keyEvent object
-                    /*if (msg instanceof Integer)
+                        } else if (msgCode.equals("Shutdown")) {
+                            ShutDownComputer();
+                        }
+                    } else { //keyEvent object
+                        /*if (msg instanceof Integer)
                     {
                         int e = (int)msg;
                         HandleKeyBoard(e);
                     }*/
+                    }
+                } catch (ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                    System.exit(-1);
+                } catch (IOException ex) {
+                    synchronized (LocalServerHandler.class) {
+                        if (!shouldExit && clientVertified) {
+                            shouldExit = true;
+                            System.out.println("Client disconnected");
+                            Context.getInstance().DisplayNotification("Client Disconnected", String.format("Client %s disconnected from server.", clientName));
+                            break;
+                        }
+                    }
                 }
-            }
-            catch (ClassNotFoundException ex) {
-                ex.printStackTrace();
-                System.exit(-1);
-            }
-            catch (IOException ex) {
-                synchronized (LocalServerHandler.class) {
-                    if (!shouldExit && clientVertified) {
-                        shouldExit = true;
-                        System.out.println("Client disconnected");
-                        f.DisplayNotification("Client Disconnected", String.format("Client %s disconnected from server.", clientName));
-                        break;
+            } while (!inMsg.equals("END") && computerIsOn);
+            System.out.println("Client requested termination from IP address "
+                    + clientIP + " and port " + clientPort);
+        } else // presentation mode, just send screen captures
+        {
+            while (computerIsOn) {
+                // do nothing as long as client is connected 
+                try {
+                    Object msg = istr.readObject();
+                    String inMsg;
+                    if (msg instanceof String) {
+                        inMsg = (String) msg;
+                        System.out.println("Message Recieved: " + inMsg);
+                        StringTokenizer inStrTok = new StringTokenizer(inMsg, ";",
+                                false);
+                        String msgCode = inStrTok.nextToken();
+                        if (msgCode.startsWith("Name=")) {
+                            this.clientName = msgCode.split("=")[1];
+                        } else {
+                            //ignore
+                        }
+                    }
+                }catch (ClassNotFoundException ex) {
+                    ex.printStackTrace();
+                    System.exit(-1);
+                } catch (IOException ex) {
+                    synchronized (LocalServerHandler.class) {
+                        if (!shouldExit && clientVertified) {
+                            shouldExit = true;
+                            System.out.println("Client disconnected");
+                            Context.getInstance().DisplayNotification("Client Disconnected", String.format("Client %s disconnected from server.", clientName));
+                            break;
+                        }
                     }
                 }
             }
-        } while (!inMsg.equals("END") && computerIsOn);
-        System.out.println("Client requested termination from IP address "
-                             +clientIP+" and port "+clientPort);
+            System.out.println("Client requested termination from IP address "
+                    + clientIP + " and port " + clientPort);
+        }
         try {
             sock.shutdownInput();
             sock.shutdownOutput();
             sock.close();
-        }
-        catch (IOException ex) {
+        } catch (IOException ex) {
             System.out.println(ex.getMessage());
         }
     }
